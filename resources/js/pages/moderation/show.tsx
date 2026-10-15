@@ -3,12 +3,19 @@ import { Check, X } from 'lucide-react';
 import { useState } from 'react';
 import CommitApprovalController from '@/actions/App/Http/Controllers/CommitApprovalController';
 import CommitRejectionController from '@/actions/App/Http/Controllers/CommitRejectionController';
+import { store as approvePendingCommits } from '@/actions/App/Http/Controllers/PendingCommitApprovalController';
 import { CommitFeed, EmptyFeed } from '@/components/commit-feed';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { Commit, CursorPaginated } from '@/types';
 
-function ModerationActions({ commit }: { commit: Commit }) {
+function ModerationActions({
+    commit,
+    disabled,
+}: {
+    commit: Commit;
+    disabled: boolean;
+}) {
     const [processing, setProcessing] = useState(false);
 
     const moderate = (
@@ -27,7 +34,7 @@ function ModerationActions({ commit }: { commit: Commit }) {
         <div className="mt-3 flex gap-2">
             <Button
                 size="sm"
-                disabled={processing}
+                disabled={processing || disabled}
                 onClick={() => moderate(CommitApprovalController.store)}
                 data-test="approve-commit-button"
             >
@@ -37,7 +44,7 @@ function ModerationActions({ commit }: { commit: Commit }) {
             <Button
                 variant="outline"
                 size="sm"
-                disabled={processing}
+                disabled={processing || disabled}
                 onClick={() => moderate(CommitRejectionController.store)}
                 data-test="reject-commit-button"
             >
@@ -53,6 +60,16 @@ export default function Show({
 }: {
     commits: CursorPaginated<Commit>;
 }) {
+    const [approvingAll, setApprovingAll] = useState(false);
+
+    const approveAll = () =>
+        router.visit(approvePendingCommits(), {
+            data: { commit_ids: commits.data.map((commit) => commit.id) },
+            reset: ['commits'],
+            onStart: () => setApprovingAll(true),
+            onFinish: () => setApprovingAll(false),
+        });
+
     return (
         <>
             <Head title="Moderation" />
@@ -64,11 +81,32 @@ export default function Show({
                 </p>
             </div>
 
+            {commits.data.length > 0 && (
+                <div className="flex justify-end border-b px-4 py-3">
+                    <Button
+                        size="sm"
+                        disabled={approvingAll}
+                        onClick={approveAll}
+                        data-test="approve-all-pending-commits-button"
+                    >
+                        <Check />
+                        {approvingAll
+                            ? 'Approving…'
+                            : `Approve ${commits.data.length} pending ${commits.data.length === 1 ? 'commit' : 'commits'}`}
+                    </Button>
+                </div>
+            )}
+
             <CommitFeed
                 commits={commits}
                 firstLane="var(--rail)"
                 end="That's every pending commit."
-                actions={(commit) => <ModerationActions commit={commit} />}
+                actions={(commit) => (
+                    <ModerationActions
+                        commit={commit}
+                        disabled={approvingAll}
+                    />
+                )}
                 empty={
                     <EmptyFeed command="nothing to commit, working tree clean">
                         No commits are waiting for review.

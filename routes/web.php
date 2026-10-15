@@ -8,6 +8,7 @@ use App\Http\Controllers\CommitRejectionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\ModerationController;
+use App\Http\Controllers\PendingCommitApprovalController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserFollowController;
@@ -46,6 +47,8 @@ Route::middleware('auth')->group(function (): void {
     // Moderation...
     Route::middleware('can:moderate')->group(function (): void {
         Route::get('moderation', [ModerationController::class, 'show'])->name('moderation.show');
+        Route::post('moderation/approval', [PendingCommitApprovalController::class, 'store'])
+            ->name('pending-commit-approval.store');
         Route::post('moderation/{commit}/approval', [CommitApprovalController::class, 'store'])
             ->name('commit-approval.store');
         Route::post('moderation/{commit}/rejection', [CommitRejectionController::class, 'store'])
