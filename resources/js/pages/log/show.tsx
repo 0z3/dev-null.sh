@@ -40,6 +40,7 @@ export default function Show({
     } = usePage();
     const user = auth.user;
     const viewerId = user?.id ?? 'guest';
+    const signInToSee = user ? undefined : 'Sign in to see this log';
     const markerKey = `latest-marker:${viewerId}:${log}`;
     const [markerId, setMarkerId] = useState(
         () =>
@@ -144,20 +145,18 @@ export default function Show({
                     label="Logs"
                     prefetch={false}
                     tabs={[
-                        ...(user
-                            ? [
-                                  {
-                                      title: 'Following',
-                                      href: LogController.show('following'),
-                                      isActive: log === 'following',
-                                  },
-                                  {
-                                      title: 'Latest',
-                                      href: LogController.show('latest'),
-                                      isActive: log === 'latest',
-                                  },
-                              ]
-                            : []),
+                        {
+                            title: 'Following',
+                            href: LogController.show('following'),
+                            isActive: log === 'following',
+                            disabledReason: signInToSee,
+                        },
+                        {
+                            title: 'Latest',
+                            href: LogController.show('latest'),
+                            isActive: log === 'latest',
+                            disabledReason: signInToSee,
+                        },
                         {
                             title: 'Trending',
                             href: LogController.show('trending'),
