@@ -50,7 +50,7 @@ function useNavItems(): (NavItem & { isActive: boolean })[] {
     const items: NavItem[] = [
         {
             title: 'Log',
-            href: hrefFor((_, log) => LogController.show(log)),
+            href: log === null ? home() : LogController.show(log),
             icon: GitCommitVertical,
             prefetch: false,
         },
@@ -98,12 +98,12 @@ function useNavItems(): (NavItem & { isActive: boolean })[] {
     return items.map((item) => ({
         ...item,
         isActive:
-            user !== null &&
-            (item.title === 'Settings'
-                ? isCurrentOrParentUrl('/settings')
-                : item.title === 'Log'
-                  ? isCurrentOrParentUrl('/log')
-                  : isCurrentUrl(item.href)),
+            item.title === 'Log'
+                ? isCurrentOrParentUrl('/log') || isCurrentUrl(home())
+                : user !== null &&
+                  (item.title === 'Settings'
+                      ? isCurrentOrParentUrl('/settings')
+                      : isCurrentUrl(item.href)),
     }));
 }
 

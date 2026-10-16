@@ -179,11 +179,37 @@ it('returns not found for unknown logs', function (): void {
     $response->assertNotFound();
 });
 
-it('requires authentication', function (Log $log): void {
+it('requires authentication for the personal logs', function (Log $log): void {
     $response = $this->get(route('log.show', $log));
 
     $response->assertRedirectToRoute('home');
-})->with(Log::cases());
+})->with([Log::Following, Log::Latest]);
+
+it('renders the trending log for guests with the landing page link preview', function (): void {
+    $approved = Commit::factory()->create();
+    Commit::factory()->create(['status' => CommitStatus::Pending]);
+
+    $this->get(route('log.show', Log::Trending))
+        ->assertOk()
+        ->assertSee('<link rel="canonical" href="'.route('home').'">', false)
+        ->assertInertia(fn ($page) => $page
+            ->component('log/show')
+            ->where('log', 'trending')
+            ->has('commits.data', 1)
+            ->where('commits.data.0.id', $approved->id));
+});
+
+it('counts new trending commits for guests', function (): void {
+    $seen = Commit::factory()->create(['created_at' => now()->subMinute()]);
+    Commit::factory()->create();
+
+    $this->get(route('log.show', ['log' => Log::Trending, 'since' => $seen->id]), [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) new HandleInertiaRequests()->version(request()),
+        'X-Inertia-Partial-Component' => 'log/show',
+        'X-Inertia-Partial-Data' => 'newCommitsCount',
+    ])->assertOk()->assertJsonPath('props.newCommitsCount', 1);
+});
 
 it('counts commits newer than a given commit', function (): void {
     $user = User::factory()->create();

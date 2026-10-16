@@ -2,22 +2,25 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Middleware;
 
 use App\Models\User;
-use App\Services\PageMetadata;
-use Illuminate\Http\RedirectResponse;
+use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
-use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response;
 
-final readonly class HomeController
+final readonly class SignInLocalDeveloper
 {
-    public function show(Request $request, PageMetadata $metadata): RedirectResponse|Response
+    /**
+     * Locally, with AUTO_LOGIN enabled, the landing page signs in a local developer without GitHub.
+     *
+     * @param  Closure(Request): (Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
     {
         if (! app()->isLocal() || ! config('app.auto_login')) {
-            return Inertia::render('welcome')->withViewData(['preview' => $metadata->home()]);
+            return $next($request);
         }
 
         $user = User::query()->firstOrCreate(

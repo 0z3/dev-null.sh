@@ -3,14 +3,20 @@
 declare(strict_types=1);
 
 use App\Enums\Log;
+use App\Models\Commit;
 use App\Models\User;
 
-it('renders the landing page for guests', function (): void {
+it('renders the trending log for guests', function (): void {
+    $commit = Commit::factory()->create();
+
     $response = $this->get(route('home'));
 
     $response->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('welcome'));
+            ->component('log/show')
+            ->where('log', 'trending')
+            ->has('commits.data', 1)
+            ->where('commits.data.0.id', $commit->id));
 });
 
 it('describes the landing page to search engines and link previews', function (): void {
@@ -94,7 +100,7 @@ it('does not automatically sign in locally when AUTO_LOGIN is disabled', functio
 
     $this->get(route('home'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('welcome'));
+        ->assertInertia(fn ($page) => $page->component('log/show'));
 
     $this->assertGuest();
 
@@ -107,7 +113,7 @@ it('does not automatically sign in outside the local environment', function (): 
 
     $this->get(route('home'))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('welcome'));
+        ->assertInertia(fn ($page) => $page->component('log/show'));
 
     $this->assertGuest();
 

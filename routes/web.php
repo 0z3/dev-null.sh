@@ -24,7 +24,6 @@ use App\Http\Controllers\CommitStarCountController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FailedJobController;
 use App\Http\Controllers\FailedJobRetryController;
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MentionSuggestionController;
 use App\Http\Controllers\ModerationController;
@@ -53,6 +52,7 @@ use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\UserSearchController;
 use App\Http\Controllers\UserSitemapController;
 use App\Http\Middleware\RememberIntendedUrl;
+use App\Http\Middleware\SignInLocalDeveloper;
 use App\Http\Middleware\ThrottleCommits;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -61,7 +61,10 @@ use Inertia\Inertia;
 Route::get('commit', [ScriptController::class, 'show'])->name('cli-script.show');
 
 Route::middleware('guest')->group(function (): void {
-    Route::get('/', [HomeController::class, 'show'])->name('home');
+    // Guests land on the Trending log...
+    Route::get('/', [LogController::class, 'index'])
+        ->middleware(SignInLocalDeveloper::class)
+        ->name('home');
 
     // Session...
     Route::get('login', [SessionController::class, 'create'])
@@ -73,6 +76,8 @@ Route::middleware('guest')->group(function (): void {
 
 // Public pages, readable by guests and crawlers...
 Route::middleware(RememberIntendedUrl::class)->group(function (): void {
+    Route::get('log/everyone', fn () => to_route('log.show', Log::Trending, 301));
+    Route::get('log/{log}', [LogController::class, 'show'])->name('log.show');
     Route::get('@{user:username}', [UserController::class, 'show'])->name('user.show');
     Route::get('@{user:username}/following', [UserFollowingController::class, 'index'])
         ->name('user-following.index');
@@ -149,10 +154,6 @@ Route::middleware('auth')->group(function (): void {
     // Onboarding...
     Route::get('onboarding', [OnboardingController::class, 'show'])->name('onboarding.show');
     Route::put('onboarding', [OnboardingController::class, 'update'])->name('onboarding.update');
-
-    // Log...
-    Route::get('log/everyone', fn () => to_route('log.show', Log::Trending, 301));
-    Route::get('log/{log}', [LogController::class, 'show'])->name('log.show');
 
     // Private saved commits...
     Route::get('saved', [BookmarkController::class, 'index'])->name('bookmark.index');
