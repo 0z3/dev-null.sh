@@ -39,7 +39,7 @@ final readonly class UpdateCommitAiDecision
 
         $categories = array_keys($scores);
 
-        if ($this->openAI->isHarmful($commit->body)) {
+        if ($commit->body !== '' && $this->openAI->isHarmful($commit->body)) {
             $categories[] = 'harmful-text';
         }
 
