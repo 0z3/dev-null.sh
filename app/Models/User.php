@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * @property-read string $id
  * @property-read string $github_id
+ * @property-read string|null $github_issue_token
+ * @property-read CarbonInterface|null $github_issue_token_expires_at
  * @property-read string $username
  * @property-read string $name
  * @property-read string|null $email
@@ -66,6 +68,8 @@ use Illuminate\Support\Facades\DB;
  */
 #[Hidden([
     'github_id',
+    'github_issue_token',
+    'github_issue_token_expires_at',
     'email',
     'remember_token',
     'preferred_lane',
@@ -97,6 +101,8 @@ final class User extends Authenticatable
      */
     protected $attributes = [
         'log' => Log::Following->value,
+        'github_issue_token' => null,
+        'github_issue_token_expires_at' => null,
         'pasteis_mode' => false,
         'remotes_enabled' => true,
         'remotes_from' => RemotesFrom::Following->value,
@@ -114,6 +120,8 @@ final class User extends Authenticatable
         return [
             'id' => 'string',
             'github_id' => 'string',
+            'github_issue_token' => 'encrypted',
+            'github_issue_token_expires_at' => 'datetime',
             'username' => 'string',
             'name' => 'string',
             'email' => 'string',
@@ -142,6 +150,12 @@ final class User extends Authenticatable
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    public function hasGitHubIssueAuthorization(): bool
+    {
+        return filled($this->github_issue_token)
+            && ($this->github_issue_token_expires_at === null || $this->github_issue_token_expires_at->isFuture());
     }
 
     /**

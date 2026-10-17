@@ -6,6 +6,7 @@ import CommitController from '@/actions/App/Http/Controllers/CommitController';
 import ScheduledCommitController from '@/actions/App/Http/Controllers/ScheduledCommitController';
 import { ActionTooltip } from '@/components/action-tooltip';
 import { BodyCounter } from '@/components/body-counter';
+import { CommitCommands } from '@/components/commit-commands';
 import {
     ImageDropOverlay,
     ImagePickerButton,
@@ -84,6 +85,7 @@ function CommitComposerBody({
     secrets,
     isSubmittable,
     processing,
+    onIssueProcessingChange,
     errors,
     onKeyDown,
     drop,
@@ -100,6 +102,7 @@ function CommitComposerBody({
     secrets: ReturnType<typeof useSecretWarning>;
     isSubmittable: boolean;
     processing: boolean;
+    onIssueProcessingChange: (processing: boolean) => void;
     errors: Record<string, string>;
     onKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
     drop: () => void;
@@ -393,6 +396,19 @@ function CommitComposerBody({
                             </Button>
                         </ActionTooltip>
                     </div>
+                    <CommitCommands
+                        body={body}
+                        images={attachments.images}
+                        descriptions={attachments.descriptions}
+                        disabled={
+                            processing ||
+                            !isSubmittable ||
+                            poll !== null ||
+                            isScheduling
+                        }
+                        hasSecrets={secrets.findings.length > 0}
+                        onProcessingChange={onIssueProcessingChange}
+                    />
                 </div>
             </div>
         </div>
@@ -427,6 +443,7 @@ export function CommitComposer({
         stash.updateImages,
     );
     const [poll, setPoll] = useState<PollDraft | null>(null);
+    const [issueProcessing, setIssueProcessing] = useState(false);
     const secrets = useSecretWarning(body);
 
     const hasImages = attachments.images.length > 0;
@@ -454,7 +471,7 @@ export function CommitComposer({
             {...(isScheduling
                 ? ScheduledCommitController.store.form()
                 : CommitController.store.form())}
-            onBefore={secrets.beforeSubmit}
+            onBefore={() => !issueProcessing && secrets.beforeSubmit()}
             transform={(data) => ({
                 ...data,
                 ...(hasImages && {
@@ -488,24 +505,27 @@ export function CommitComposer({
             data-test="commit-composer"
         >
             {({ processing, errors }) => (
-                <CommitComposerBody
-                    key={draftVersion}
-                    id={id}
-                    isInDialog={isInDialog}
-                    user={user}
-                    stash={stash}
-                    attachments={attachments}
-                    linkCard={linkCard}
-                    schedule={schedule}
-                    poll={poll}
-                    setPoll={setPoll}
-                    secrets={secrets}
-                    isSubmittable={isSubmittable}
-                    processing={processing}
-                    errors={errors}
-                    onKeyDown={onKeyDown}
-                    drop={drop}
-                />
+                <fieldset disabled={issueProcessing} className="contents">
+                    <CommitComposerBody
+                        key={draftVersion}
+                        id={id}
+                        isInDialog={isInDialog}
+                        user={user}
+                        stash={stash}
+                        attachments={attachments}
+                        linkCard={linkCard}
+                        schedule={schedule}
+                        poll={poll}
+                        setPoll={setPoll}
+                        secrets={secrets}
+                        isSubmittable={isSubmittable}
+                        processing={processing}
+                        onIssueProcessingChange={setIssueProcessing}
+                        errors={errors}
+                        onKeyDown={onKeyDown}
+                        drop={drop}
+                    />
+                </fieldset>
             )}
         </Form>
     );

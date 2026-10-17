@@ -29,6 +29,8 @@ Run `composer dev` and visit `http://localhost:8000` (or your configured `APP_UR
 
 Leave `AUTO_LOGIN=false` to sign in using GitHub. Create a [GitHub OAuth app](https://github.com/settings/developers) with the callback URL `{APP_URL}/auth/github/callback`, then set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in `.env`.
 
+For `/feature` and `/bug` commands, add `{APP_URL}/auth/github/issues/callback` as a second callback URL on the same OAuth app. [GitHub supports up to 10 OAuth callback URLs](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app); register both exact URLs with wildcard matching disabled. Keep `GITHUB_REDIRECT_URI` pointing to the sign-in callback. Users opt in to the additional `public_repo` permission from **Settings → Profile**; normal sign-in does not require it.
+
 ### Embeds
 
 A link card for a video, song or pen becomes a player that loads when clicked. The player URL is built on the server from the link, so only the sites below can be framed. None of them need an API key.

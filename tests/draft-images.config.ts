@@ -12,6 +12,7 @@ export default defineConfig({
             'tests/Unit/AuthorHover.test.tsx',
             'tests/Unit/DraftStash.test.tsx',
             'tests/Unit/ComposerDraft.test.tsx',
+            'tests/Unit/CommitCommands.test.tsx',
             'tests/Unit/QuoteDraft.test.tsx',
             'tests/Unit/EmojiSearch.test.tsx',
             'tests/Unit/EmojiShortcodes.test.tsx',

@@ -65,6 +65,8 @@ vi.doMock('../../resources/js/hooks/use-stash', () => ({
 
 const { CommitComposer } =
     await import('../../resources/js/components/commit-composer');
+const { CommitCommands } =
+    await import('../../resources/js/components/commit-commands');
 const { ImageDropOverlay, ImagePickerButton, ImagePickerPreviews } =
     await import('../../resources/js/components/commit-image-picker');
 const { ComposerPreviewBody, PreviewToggle } =
@@ -408,6 +410,58 @@ test('previews restored images and descriptions while keeping them attached when
     });
 });
 
+test('a running issue command locks the commit form and its submission', () => {
+    const commands = () =>
+        render().fields.find((element) => element.type === CommitCommands)!;
+    const fieldset = (view: ReturnType<typeof render>) =>
+        view.fields.find((element) => element.type === 'fieldset')!;
+    let view = render();
+    assert.equal(fieldset(view).props.disabled, false);
+    assert.equal(view.form.props.onBefore(), true);
+    assert.equal(commands().props.disabled, false);
+    assert.equal(commands().props.body, draft.body);
+
+    (commands().props.onProcessingChange as (processing: boolean) => void)(
+        true,
+    );
+    view = render();
+    assert.equal(fieldset(view).props.disabled, true);
+    assert.equal(view.form.props.onBefore(), false);
+    assert.equal(draft.drop.mock.calls.length, 0);
+    assert.equal(draft.body, 'A restored draft https://example.com');
+
+    (commands().props.onProcessingChange as (processing: boolean) => void)(
+        false,
+    );
+    view = render();
+    assert.equal(fieldset(view).props.disabled, false);
+    assert.equal(view.form.props.onBefore(), true);
+});
+
+test('issue commands are disabled while the draft would not commit now', () => {
+    const commands = () =>
+        render().fields.find((element) => element.type === CommitCommands)!;
+    const find = (key: string, value: unknown) =>
+        render().fields.find((element) => element.props[key] === value)!;
+
+    draft.body = '';
+    assert.equal(commands().props.disabled, true);
+    draft.body = 'A restored draft https://example.com';
+    assert.equal(commands().props.disabled, false);
+
+    (find('aria-controls', 'body-schedule').props.onClick as () => void)();
+    assert.equal(commands().props.disabled, true);
+    (find('aria-controls', 'body-schedule').props.onClick as () => void)();
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn());
+    try {
+        (find('data-test', 'add-poll-button').props.onClick as () => void)();
+        assert.equal(commands().props.disabled, true);
+    } finally {
+        vi.unstubAllGlobals();
+    }
+});
+
 test('turning scheduling off clears the chosen time and commits now', () => {
     const find = (key: string, value: unknown) =>
         render().fields.find((element) => element.props[key] === value);
@@ -419,9 +473,11 @@ test('turning scheduling off clears the chosen time and commits now', () => {
 
     (find('aria-controls', 'body-schedule')!.props.onClick as () => void)();
     assert.equal(submit().props.disabled, true);
-    (find('id', 'body-scheduled-at')!.props.onChange as (value: string) => void)(
-        '2026-10-17T10:30',
-    );
+    (
+        find('id', 'body-scheduled-at')!.props.onChange as (
+            value: string,
+        ) => void
+    )('2026-10-17T10:30');
     assert.equal(submit().props.disabled, false);
     assert.equal(label(submit()), 'Schedule commit');
 
