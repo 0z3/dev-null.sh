@@ -448,7 +448,6 @@ it('includes quotes in the inbox and filters their history without reading hidde
     $hidden->commit->update(['status' => CommitStatus::Pending]);
     Notification::factory()->for($user, 'recipient')->replied()->create();
 
-
     $this->actingAs($user)->get(route('notification.index'))->assertOk()
         ->assertInertia(fn ($page) => $page->has('notifications.data', 2));
     $this->get(route('notification.index', ['type' => 'quotes']))->assertOk()
