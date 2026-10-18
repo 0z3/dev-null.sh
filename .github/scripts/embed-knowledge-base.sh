@@ -33,9 +33,18 @@ while (( SECONDS < deadline )); do
                 expected_hash="$(git show "$deployed_sha:KNOWLEDGE_BASE.md" | sha256sum | cut -d ' ' -f 1)"
 
                 # Check the file again in the command's actual release, closing the deployment race.
-                cloud command:run "$LARAVEL_CLOUD_ENVIRONMENT_ID" \
+                command_output="$(cloud command:run "$LARAVEL_CLOUD_ENVIRONMENT_ID" \
                     --cmd="php artisan knowledge-base:embed --expected-hash=$expected_hash --no-interaction" \
-                    --json -n --fields=id,status,exitCode,output
+                    --json -n --fields=id,status,exitCode,output)"
+                printf '%s\n' "$command_output"
+
+                # The pinned CLI exits zero in JSON mode even when the remote command failed.
+                if ! jq -se 'last | .status == "command.success" and .exitCode == 0' \
+                    <<< "$command_output" > /dev/null; then
+                    echo 'The remote knowledge base import did not complete successfully.' >&2
+                    exit 1
+                fi
+
                 exit 0
             fi
         fi
