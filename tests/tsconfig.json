@@ -8,7 +8,6 @@
         "Unit/**/*.test.ts",
         "Unit/DraftStash.test.tsx",
         "Unit/ComposerDraft.test.tsx",
-        "Unit/CommitCommands.test.tsx",
         "../resources/js/types/*.d.ts",
         "draft-images.config.ts"
     ]

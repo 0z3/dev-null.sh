@@ -132,7 +132,7 @@ it('validates the command and the body', function (array $payload, string $field
     'blank lines only' => [['command' => '/bug', 'body' => "a\n\n\n\n"], 'body'],
 ]);
 
-it('requires authentication and limits issues to five an hour', function (): void {
+it('requires authentication and limits opened issues to five an hour', function (): void {
     fakeGitHubApp();
     $this->postJson(route('issue.store'), ['command' => '/bug', 'body' => 'Broken.'])->assertUnauthorized();
 
@@ -141,5 +141,30 @@ it('requires authentication and limits issues to five an hour', function (): voi
         $this->actingAs($user)->postJson(route('issue.store'), ['command' => '/bug', 'body' => "Broken {$attempt}."])->assertCreated();
     }
 
-    $this->actingAs($user)->postJson(route('issue.store'), ['command' => '/bug', 'body' => 'Broken again.'])->assertTooManyRequests();
+    $this->actingAs($user)->postJson(route('issue.store'), ['command' => '/bug', 'body' => 'Broken again.'])
+        ->assertTooManyRequests()
+        ->assertJsonPath('message', 'Issue limit reached. Try again in an hour.');
+
+    $this->travel(1)->hours();
+    $this->actingAs($user)->postJson(route('issue.store'), ['command' => '/bug', 'body' => 'Broken later.'])->assertCreated();
+});
+
+it('does not count rejected drafts or failed attempts towards the limit', function (): void {
+    Http::fake([
+        'api.github.com/repos/nunomaduro/dev-null.sh/installation' => Http::response(['id' => 99]),
+        'api.github.com/app/installations/99/access_tokens' => Http::response(['token' => 'installation-token'], 201),
+        'api.github.com/repos/nunomaduro/dev-null.sh/issues' => Http::sequence()
+            ->push([], 500)->push([], 500)->push([], 500)
+            ->push([], 500)->push([], 500)->push([], 500)
+            ->push(['number' => 1, 'html_url' => 'https://github.com/nunomaduro/dev-null.sh/issues/1'], 201),
+    ]);
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->postJson(route('issue.store'), ['command' => '/deploy', 'body' => 'Nope.'])->assertUnprocessable();
+    foreach (range(1, 6) as $attempt) {
+        $this->actingAs($user)->postJson(route('issue.store'), ['command' => '/bug', 'body' => 'Broken.'])->assertStatus(502);
+        $this->travel(11)->seconds();
+    }
+
+    $this->actingAs($user)->postJson(route('issue.store'), ['command' => '/bug', 'body' => 'Broken.'])->assertCreated();
 });
