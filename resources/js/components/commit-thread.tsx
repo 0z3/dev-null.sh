@@ -24,6 +24,7 @@ import { CommitImages } from '@/components/commit-images';
 import { CommitPastelButton } from '@/components/commit-pastel-button';
 import { CommitSecondaryActions } from '@/components/commit-secondary-actions';
 import { CommitStarButton } from '@/components/commit-star-button';
+import { CommitStatusBadge } from '@/components/commit-status-badge';
 import {
     ComposerPreviewBody,
     PreviewToggle,
@@ -841,18 +842,7 @@ function CommitReply({
                                 </time>
                             </Link>
                         </TimestampTooltip>
-                        {reply.status !== 'approved' && (
-                            <span
-                                className={cn(
-                                    'shrink-0 self-center rounded-full px-1.5 font-mono text-[11px]',
-                                    reply.status === 'pending'
-                                        ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
-                                        : 'bg-destructive/10 text-destructive',
-                                )}
-                            >
-                                {reply.status}
-                            </span>
-                        )}
+                        <CommitStatusBadge commit={reply} size="small" />
                         {isOwn && (
                             <Tooltip>
                                 <TooltipTrigger asChild>
