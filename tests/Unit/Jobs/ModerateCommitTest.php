@@ -88,7 +88,7 @@ it('stores that the ai would approve a commit it does not flag', function (): vo
         && $request['input'] === [['type' => 'text', 'text' => 'Shipped a new feature']]);
 
     Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/responses')
-        && $request['model'] === 'gpt-6-astra'
+        && $request['model'] === 'gpt-6.1-sol'
         && $request['text']['format']['name'] === 'harmful'
         && $request['input'][1]['content'] === [['type' => 'input_text', 'text' => 'Shipped a new feature']]);
 
@@ -301,7 +301,7 @@ it('rejects images that may show a minor', function (): void {
         ->status->toBe(CommitStatus::Pending);
 
     Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/responses')
-        && $request['model'] === 'gpt-6-astra'
+        && $request['model'] === 'gpt-6.1-sol'
         && $request['text']['format']['name'] === 'minors'
         && $request['input'][1]['content'] === [
             ['type' => 'input_image', 'image_url' => 'data:image/webp;base64,'.base64_encode('first')],
