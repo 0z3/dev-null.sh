@@ -140,6 +140,7 @@ it('orders tied timestamps by the latest notification id', function (): void {
 });
 
 it('groups follows across people within a rolling hour and bumps the group', function (): void {
+    $this->travelTo(today()->setTime(12, 0));
     $user = User::factory()->create();
     $first = Notification::factory()->for($user, 'recipient')->create(['created_at' => now()->subMinutes(100)]);
     Notification::factory()->for($user, 'recipient')->create(['created_at' => now()->subMinutes(50)]);
@@ -154,6 +155,7 @@ it('groups follows across people within a rolling hour and bumps the group', fun
 });
 
 it('splits follows after an interrupted gap longer than an hour regardless of filters', function (int $seconds, int $groups): void {
+    $this->travelTo(today()->setTime(12, 0));
     $user = User::factory()->create();
     $old = Notification::factory()->for($user, 'recipient')->create(['created_at' => now()->subSeconds($seconds)]);
     Notification::factory()->for($user, 'recipient')->replied()->create(['created_at' => now()->subSecond()]);
@@ -170,9 +172,10 @@ it('splits follows after an interrupted gap longer than an hour regardless of fi
         ->assertOk()->assertJsonCount($groups === 1 ? 2 : 1, 'data');
 })->with(['exactly one hour' => [3600, 1], 'one second too long' => [3601, 2], 'two days' => [172800, 2]]);
 
-it('extends the newest follow group after days without intervening relevant activity', function (): void {
+it('extends the newest follow group after hours without intervening relevant activity', function (): void {
+    $this->travelTo(today()->setTime(12, 0));
     $user = User::factory()->create();
-    $old = Notification::factory()->for($user, 'recipient')->create(['created_at' => now()->subDays(2)]);
+    $old = Notification::factory()->for($user, 'recipient')->create(['created_at' => now()->subHours(6)]);
     Notification::factory()->replied()->create(['created_at' => now()->subHour()]);
     $hidden = Notification::factory()->for($user, 'recipient')->replied()->create(['created_at' => now()->subMinute()]);
     $hidden->commit->delete();
@@ -182,6 +185,24 @@ it('extends the newest follow group after days without intervening relevant acti
     $this->actingAs($user)->get(route('notification.index'))->assertInertia(fn ($page) => $page
         ->has('notifications.data', 1)->where('notifications.data.0.id', $latest->id)
         ->where('notifications.data.0.event_count', 2)->where('notifications.data.0.group_id', $old->id));
+});
+
+it('never groups follows across days, even when they keep coming', function (): void {
+    $this->travelTo(today()->setTime(0, 30));
+    $user = User::factory()->create();
+    $old = Notification::factory()->for($user, 'recipient')->create(['created_at' => now()->subMinutes(50)]);
+    $yesterday = Notification::factory()->for($user, 'recipient')->create(['created_at' => now()->subMinutes(40)]);
+    $latest = Notification::factory()->for($user, 'recipient')->create();
+
+    expect(resolve(NotificationGroupsQuery::class)->unreadCount($user))->toBe(2);
+
+    foreach (['all', 'follows'] as $type) {
+        $this->actingAs($user)->get(route('notification.index', ['type' => $type]))->assertInertia(fn ($page) => $page
+            ->has('notifications.data', 2)
+            ->where('notifications.data.0.id', $latest->id)->where('notifications.data.0.event_count', 1)
+            ->where('notifications.data.1.id', $yesterday->id)->where('notifications.data.1.group_id', $old->id)
+            ->where('notifications.data.1.event_count', 2));
+    }
 });
 
 it('extends an old conversation only when it is still the newest group', function (bool $interrupted): void {
@@ -427,7 +448,6 @@ it('includes quotes in the inbox and filters their history without reading hidde
     $hidden->commit->update(['status' => CommitStatus::Pending]);
     Notification::factory()->for($user, 'recipient')->replied()->create();
 
-    expect(resolve(NotificationGroupsQuery::class)->unreadCount($user))->toBe(2);
 
     $this->actingAs($user)->get(route('notification.index'))->assertOk()
         ->assertInertia(fn ($page) => $page->has('notifications.data', 2));
