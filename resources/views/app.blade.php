@@ -92,7 +92,7 @@
 
         @production
             <!-- Fathom - beautiful, simple website analytics -->
-            <script src="https://cdn.usefathom.com/script.js" data-site="HTQONOPD" defer></script>
+            <script src="https://cdn.usefathom.com/script.js" data-site="{{ config('services.fathom.site_id') }}" defer></script>
             <!-- / Fathom -->
         @endproduction
 
