@@ -36,31 +36,18 @@ final readonly class MarkdownSections
             $headingEnd = $node->getEndLine();
             assert(is_int($headingStart) && is_int($headingEnd));
 
-            $this->append($sections, $headings, implode("\n", array_slice($lines, $start, $headingStart - 1 - $start)));
+            $sections[] = ['headings' => array_values($headings), 'content' => implode("\n", array_slice($lines, $start, $headingStart - 1 - $start))];
 
-            foreach (array_keys($headings) as $level) {
-                if ($level >= $node->getLevel()) {
-                    unset($headings[$level]);
-                }
-            }
-
+            $headings = array_filter($headings, fn (int $level): bool => $level < $node->getLevel(), ARRAY_FILTER_USE_KEY);
             $headings[$node->getLevel()] = StringContainerHelper::getChildText($node);
             $start = $headingEnd;
         }
 
-        $this->append($sections, $headings, implode("\n", array_slice($lines, $start)));
+        $sections[] = ['headings' => array_values($headings), 'content' => implode("\n", array_slice($lines, $start))];
 
-        return $sections;
-    }
-
-    /**
-     * @param  list<array{headings: list<string>, content: string}>  $sections
-     * @param  array<int, string>  $headings
-     */
-    private function append(array &$sections, array $headings, string $body): void
-    {
-        if (mb_trim($body) !== '') {
-            $sections[] = ['headings' => array_values($headings), 'content' => mb_trim($body, "\n")];
-        }
+        return array_values(collect($sections)
+            ->filter(fn (array $section): bool => mb_trim($section['content']) !== '')
+            ->map(fn (array $section): array => [...$section, 'content' => mb_trim($section['content'], "\n")])
+            ->all());
     }
 }

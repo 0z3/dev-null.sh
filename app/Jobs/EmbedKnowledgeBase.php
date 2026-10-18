@@ -10,7 +10,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Attributes\Backoff;
 use Illuminate\Queue\Attributes\Tries;
-use Illuminate\Support\Facades\File;
 
 #[Backoff([60, 600])]
 #[Tries(3)]
@@ -37,6 +36,6 @@ final class EmbedKnowledgeBase implements ShouldBeUnique, ShouldQueue
      */
     public function handle(UpdateKnowledgeBaseSections $action): void
     {
-        $action->handle($this->source, File::get(base_path($this->source)));
+        $action->handle($this->source);
     }
 }

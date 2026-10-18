@@ -84,9 +84,7 @@ final readonly class OpenAI
      */
     public function embed(string $text): array
     {
-        $embeddings = $this->embedMany([$text]);
-
-        return $embeddings[0];
+        return $this->embedMany([$text])[0];
     }
 
     /**
