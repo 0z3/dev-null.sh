@@ -90,6 +90,12 @@
 
         @fonts
 
+        @production
+            <!-- Fathom - beautiful, simple website analytics -->
+            <script src="https://cdn.usefathom.com/script.js" data-site="HTQONOPD" defer></script>
+            <!-- / Fathom -->
+        @endproduction
+
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         <x-inertia::head>
