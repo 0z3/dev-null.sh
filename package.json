@@ -40,7 +40,7 @@
         "clsx": "^2.1.1",
         "concurrently": "^10.0.6",
         "laravel-vite-plugin": "^3.2.0",
-        "lucide-react": "^1.58.0",
+        "lucide-react": "^1.59.0",
         "react": "^19.3.1",
         "react-dom": "^19.3.1",
         "sonner": "^2.0.8",
@@ -51,7 +51,7 @@
         "yet-another-react-lightbox": "^3.32.2"
     },
     "devDependencies": {
-        "@laravel/vite-plugin-wayfinder": "^0.1.10",
+        "@laravel/vite-plugin-wayfinder": "^0.1.11",
         "@rolldown/plugin-babel": "^0.2.4",
         "@types/node": "^26.6.5",
         "npm-check-updates": "^23.1.1",
