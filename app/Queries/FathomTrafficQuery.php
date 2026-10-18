@@ -58,11 +58,11 @@ final readonly class FathomTrafficQuery
                 'timezone' => 'UTC',
             ])
             ->throw()
-            ->collect(0);
+            ->fluent('0');
 
         return [
-            'visitors' => (int) $totals->get('uniques', 0),
-            'pageviews' => (int) $totals->get('pageviews', 0),
+            'visitors' => $totals->integer('uniques'),
+            'pageviews' => $totals->integer('pageviews'),
         ];
     }
 
