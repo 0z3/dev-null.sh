@@ -38,7 +38,7 @@ This file records the stack and the stories behind the platform. Technology name
 
 The repository defaults to database-backed queues, cache, and sessions. File storage is configurable, with local and S3-compatible storage supported. These are repository defaults and supported options, not a claim about every production environment setting.
 
-The knowledge base is split into Markdown sections by heading and stored with vector embeddings in PostgreSQL. The repository includes a GitHub Actions workflow to refresh new or changed sections after knowledge-base changes reach production on Laravel Cloud, once its [CI credentials are configured](README.md#automatic-production-updates). Unchanged sections reuse their embeddings.
+The knowledge base is split into Markdown sections by heading and stored with vector embeddings in PostgreSQL. An hourly scheduled job refreshes new or changed sections in production, so knowledge-base changes are picked up within an hour of being deployed. Unchanged sections reuse their embeddings.
 
 An [internal semantic search query](README.md#internal-semantic-search) retrieves the nearest knowledge-base sections using Laravel AI SDK query embeddings through OpenAI and PostgreSQL cosine distance, following the same embedding approach as commit search. Results preserve source paths, heading context, and Markdown content for a future agent to use. This is retrieval infrastructure only: there is no public search endpoint, and Tom's DeepSeek bot remains planned.
 

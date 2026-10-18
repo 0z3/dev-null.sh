@@ -132,18 +132,9 @@ These are nearest matches, not a guarantee of relevance or a calibrated confiden
 
 #### Automatic production updates
 
-The **Knowledge base embeddings** GitHub Actions workflow runs in the upstream `nunomaduro/dev-null.sh` repository when a push to `production` changes `KNOWLEDGE_BASE.md` (including a merged pull request). Changes to the workflow or its script also trigger it. It does not run on pull requests or forks.
+The scheduler dispatches the `App\Jobs\EmbedKnowledgeBase` job every hour, so changes to `KNOWLEDGE_BASE.md` are embedded within an hour of being deployed. The job reads the file from the running release and only embeds new or changed sections, so runs with no changes make no OpenAI requests. Only one import per source runs at a time. A failed run is retried by the queue, leaves existing sections untouched, and is picked up again on the next hour.
 
-One-time setup in the upstream repository's GitHub `production` environment (or repository Actions settings):
-
-- Add the **secret** `LARAVEL_CLOUD_TOKEN`, a Cloud API token permitted to inspect the production environment and run commands there.
-- Add the **variable** `LARAVEL_CLOUD_ENVIRONMENT_ID`, the ID of the Cloud environment deploying this repository's `production` branch.
-- Ensure Cloud push-to-deploy is enabled, the normal deploy commands run migrations, and `OPENAI_API_KEY` is configured in Cloud. Database credentials and the OpenAI key stay in Cloud, not GitHub Actions.
-- If the GitHub `production` environment requires manual approval, the job waits for that approval rather than running unattended.
-
-The job waits up to twenty minutes for the merged commit, or a newer descendant, to be live. It then runs the importer inside Cloud, using a hash of the deployed Markdown to reject a mismatched release. Runs are serialized without cancelling an in-progress import. It never starts a deployment or runs migrations itself. A deployment timeout, API error, hash mismatch, or failed import fails the job; rerun the failed job or use **Run workflow** on `production` to retry safely. The importer skips sections already up to date.
-
-Automatic imports currently cover `KNOWLEDGE_BASE.md` only. If the knowledge base is split into more files, extend the workflow's paths and import script together.
+Scheduled imports currently cover `KNOWLEDGE_BASE.md` only. If the knowledge base is split into more files, schedule the job for each source.
 
 ## License
 

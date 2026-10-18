@@ -183,28 +183,3 @@ it('reuses moved sections but reembeds when their heading context changes', func
         ->toBe([embeddingVector(2), embeddingVector(3)]);
     Http::assertSent(fn (Request $request): bool => $request['input'] === ["Characters > Tom\n\nA fictional profile."]);
 });
-
-it('refuses to import content from a different release', function (): void {
-    $existing = KnowledgeBaseSection::factory()->create(['source' => $this->source]);
-    Storage::disk('local')->put('knowledge.md', "# Lore\nOld release.");
-
-    $this->artisan('knowledge-base:embed', [
-        'source' => $this->source,
-        '--expected-hash' => hash('sha256', "# Lore\nNew release."),
-    ])->expectsOutputToContain('No embeddings were changed.')->assertFailed();
-
-    expect($existing->fresh()->getAttributes())->toEqual($existing->getAttributes());
-    Http::assertNothingSent();
-});
-
-it('imports the release that matches the expected file hash', function (): void {
-    Storage::disk('local')->put('knowledge.md', "# Lore\nTom.");
-    Http::fake(['api.openai.com/v1/embeddings' => Http::response(embeddingsResponse([embeddingVector(1)]))]);
-
-    $this->artisan('knowledge-base:embed', [
-        'source' => $this->source,
-        '--expected-hash' => hash('sha256', "# Lore\nTom."),
-    ])->assertSuccessful();
-
-    expect(KnowledgeBaseSection::query()->sole())->content->toBe('Tom.')->embedding->toBe(embeddingVector(1));
-});

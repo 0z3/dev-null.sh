@@ -11,4 +11,4 @@
 - Before finishing any change, check whether `KNOWLEDGE_BASE.md` needs updating to reflect it. Update the relevant sections in the same change when stack, hosting, repository details, platform behavior, or lore have changed; leave it alone when they have not.
 - Keep technology descriptions free of version numbers, distinguish planned features from shipped behavior, and verify names, handles, and historical claims rather than guessing.
 - Keep topics under descriptive Markdown headings: each non-empty section is embedded separately, with its parent headings providing context.
-- Production CI refreshes embeddings after knowledge-base changes are deployed. Do not manually run production embedding imports as part of an unrelated change.
+- The scheduler refreshes knowledge-base embeddings hourly in production. Do not manually run production embedding imports as part of an unrelated change.
