@@ -438,7 +438,7 @@ test('a running issue command locks the commit form and its submission', () => {
     assert.equal(view.form.props.onBefore(), true);
 });
 
-test('issue commands are disabled while the draft would not commit now', () => {
+test('issue commands are disabled while the draft would not commit now or has images', () => {
     const commands = () =>
         render().fields.find((element) => element.type === CommitCommands)!;
     const find = (key: string, value: unknown) =>
@@ -447,6 +447,11 @@ test('issue commands are disabled while the draft would not commit now', () => {
     draft.body = '';
     assert.equal(commands().props.disabled, true);
     draft.body = 'A restored draft https://example.com';
+    assert.equal(commands().props.disabled, false);
+
+    draft.images = [image];
+    assert.equal(commands().props.disabled, true);
+    draft.images = [];
     assert.equal(commands().props.disabled, false);
 
     (find('aria-controls', 'body-schedule').props.onClick as () => void)();

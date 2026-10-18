@@ -29,7 +29,9 @@ Run `composer dev` and visit `http://localhost:8000` (or your configured `APP_UR
 
 Leave `AUTO_LOGIN=false` to sign in using GitHub. Create a [GitHub OAuth app](https://github.com/settings/developers) with the callback URL `{APP_URL}/auth/github/callback`, then set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in `.env`.
 
-For `/feature` and `/bug` commands, add `{APP_URL}/auth/github/issues/callback` as a second callback URL on the same OAuth app. [GitHub supports up to 10 OAuth callback URLs](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app); register both exact URLs with wildcard matching disabled. Keep `GITHUB_REDIRECT_URI` pointing to the sign-in callback. Users opt in to the additional `public_repo` permission from **Settings → Profile**; normal sign-in does not require it.
+### Issue commands
+
+The `/feature` and `/bug` commands below the composer open an issue on `nunomaduro/dev-null.sh` from the draft, as a GitHub App crediting the reporter. No user grants any extra permission and no user token is stored. Create a [GitHub App](https://github.com/settings/apps/new) with webhooks disabled and only the **Issues: Read and write** repository permission, install it on `nunomaduro/dev-null.sh` alone, generate a private key, then set `GITHUB_APP_ID` and `GITHUB_APP_PRIVATE_KEY` (the PEM contents, with newlines written as `\n`) in `.env`. Each installation token is requested for issues on this repository only and is cached, encrypted, for 50 minutes.
 
 ### Embeds
 

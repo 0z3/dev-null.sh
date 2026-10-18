@@ -21,15 +21,15 @@ final readonly class IssueController
                 $user,
                 $request->string('command')->value(),
                 $request->string('body')->value(),
-                $request->images(),
-                $request->imageDescriptions(),
             ), 201);
-        } catch (ConnectionException|RequestException) {
+        } catch (ConnectionException) {
             return response()->json([
-                'message' => $user->hasGitHubIssueAuthorization()
-                    ? 'GitHub did not confirm the issue. Your draft is safe. Check the upstream issues before trying again.'
-                    : 'GitHub authorization is no longer valid. Enable issue commands again in settings. Your draft is safe.',
-            ], $user->hasGitHubIssueAuthorization() ? 502 : 403);
+                'message' => 'GitHub did not respond. Check the upstream issues before trying again. Your draft is safe.',
+            ], 502);
+        } catch (RequestException) {
+            return response()->json([
+                'message' => 'GitHub did not create the issue. Your draft is safe.',
+            ], 502);
         }
     }
 }

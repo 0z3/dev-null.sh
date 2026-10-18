@@ -398,13 +398,12 @@ function CommitComposerBody({
                     </div>
                     <CommitCommands
                         body={body}
-                        images={attachments.images}
-                        descriptions={attachments.descriptions}
                         disabled={
                             processing ||
                             !isSubmittable ||
                             poll !== null ||
-                            isScheduling
+                            isScheduling ||
+                            attachments.images.length > 0
                         }
                         hasSecrets={secrets.findings.length > 0}
                         onProcessingChange={onIssueProcessingChange}

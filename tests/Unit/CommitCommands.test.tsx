@@ -4,7 +4,7 @@ import * as React from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { beforeEach, test, vi } from 'vite-plus/test';
 
-type Issue = { number: number; url: string; labeled: boolean };
+type Issue = { number: number; url: string };
 type SubmitOptions = {
     onError: (errors: Record<string, string>) => void;
     onHttpException: (response: { status: number }) => void;
@@ -13,13 +13,11 @@ type SubmitOptions = {
 
 let state: unknown[] = [];
 let cursor = 0;
-const auth = { githubIssueCommandsEnabled: true };
 const request = {
     processing: false,
     transform: vi.fn(),
     submit: vi.fn<(route: unknown, options: SubmitOptions) => Promise<Issue>>(),
 };
-const router = { reload: vi.fn() };
 const toast = { error: vi.fn(), success: vi.fn() };
 
 vi.doMock('react', () => ({
@@ -53,8 +51,6 @@ vi.doMock('react-dom', async () => ({
 }));
 vi.doMock('@inertiajs/react', async () => ({
     ...(await vi.importActual('@inertiajs/react')),
-    router,
-    usePage: () => ({ props: { auth } }),
     useHttp: () => request,
 }));
 vi.doMock('sonner', () => ({ toast }));
@@ -79,12 +75,9 @@ function elements(node: ReactNode): Element[] {
     ];
 }
 
-const image = new File(['shot'], 'bug.png', { type: 'image/png' });
 const onProcessingChange = vi.fn();
 const props = {
     body: 'The timeline jumps after posting',
-    images: [image],
-    descriptions: ['Timeline screenshot'],
     disabled: false,
     hasSecrets: false,
     onProcessingChange,
@@ -131,11 +124,9 @@ beforeEach(() => {
     vi.clearAllMocks();
     state = [];
     vi.stubGlobal('document', { body: {} });
-    auth.githubIssueCommandsEnabled = true;
     request.submit.mockResolvedValue({
         number: 42,
         url: 'https://github.com/nunomaduro/dev-null.sh/issues/42',
-        labeled: true,
     });
 });
 
@@ -213,12 +204,7 @@ test('Enter sends only the issue request, ignores repeats while running and keep
     assert.equal(request.submit.mock.calls.length, 1);
     assert.deepEqual(request.submit.mock.calls[0][0], store());
     const payload = request.transform.mock.calls[0][0] as () => unknown;
-    assert.deepEqual(payload(), {
-        command: '/bug',
-        body: props.body,
-        images: [image],
-        image_descriptions: ['Timeline screenshot'],
-    });
+    assert.deepEqual(payload(), { command: '/bug', body: props.body });
 
     key('Enter');
     (render().run.props.onClick as () => void)();
@@ -227,7 +213,6 @@ test('Enter sends only the issue request, ignores repeats while running and keep
     resolve({
         number: 42,
         url: 'https://github.com/nunomaduro/dev-null.sh/issues/42',
-        labeled: true,
     });
     await settle();
     assert.deepEqual(onProcessingChange.mock.calls, [[true], [false]]);
@@ -238,26 +223,6 @@ test('Enter sends only the issue request, ignores repeats while running and keep
         /#42\. Your draft is still here/,
     );
     assert.equal(props.body, 'The timeline jumps after posting');
-});
-
-test('commands stay disabled without GitHub issue permission and explain why', () => {
-    auth.githubIssueCommandsEnabled = false;
-    type('/');
-    const view = render();
-    const container = view.tree.find(
-        (element) => element.props.onBlur !== undefined,
-    )!;
-    assert.equal(view.input.props.disabled, true);
-    assert.equal(view.run.props.disabled, true);
-    assert.equal(view.input.props['aria-expanded'], false);
-    assert.equal(view.options.length, 0);
-    assert.equal(container.props.tabIndex, 0);
-    assert.match(container.props['aria-label'] as string, /public_repo/);
-
-    type('/bug');
-    key('Enter');
-    (render().run.props.onClick as () => void)();
-    assert.equal(request.submit.mock.calls.length, 0);
 });
 
 test('commands do not run while the commit form cannot submit or the draft has secrets', () => {
@@ -300,26 +265,4 @@ test('a failed request keeps the command for a retry', async () => {
     assert.match(toast.error.mock.calls[1][0] as string, /Connection lost/);
     view = render();
     assert.equal(view.input.props.value, '/feature');
-    assert.equal(router.reload.mock.calls.length, 0);
-});
-
-test('a 403 disables commands and refreshes permissions without losing the command', async () => {
-    request.submit.mockImplementation((_route, options) => {
-        options.onHttpException({ status: 403 });
-        return Promise.reject(new Error('Forbidden'));
-    });
-    type('/bug');
-    key('Enter');
-    await settle();
-
-    assert.deepEqual(router.reload.mock.calls, [[{ only: ['auth'] }]]);
-    assert.match(toast.error.mock.calls[0][0] as string, /Settings → Profile/);
-    const view = render();
-    assert.equal(view.input.props.value, '/bug');
-    assert.equal(view.input.props.disabled, true);
-    assert.equal(view.run.props.disabled, true);
-
-    key('Enter');
-    await settle();
-    assert.equal(request.submit.mock.calls.length, 1);
 });

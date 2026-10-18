@@ -15,9 +15,6 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Inertia\ExceptionResponse;
 use Inertia\Inertia;
-use Laravel\Socialite\Socialite;
-use Laravel\Socialite\Two\AbstractProvider;
-use Laravel\Socialite\Two\GithubProvider;
 
 final class AppServiceProvider extends ServiceProvider
 {
@@ -28,11 +25,6 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Socialite::extend('github-issues', fn (): AbstractProvider => Socialite::buildProvider(GithubProvider::class, config()->array('services.github'))
-            ->setScopes(['public_repo'])
-            ->enablePKCE()
-            ->redirectUrl(route('github-issue-authorization.store')));
-
         $this->bootRateLimitingDefaults();
 
         $this->bootExceptionHandling();
