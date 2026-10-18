@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\Log;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\BookmarkController;
+use App\Http\Controllers\BrandController;
 use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\Cli\ScriptController;
 use App\Http\Controllers\CommitApprovalController;
@@ -120,6 +121,9 @@ Route::get('privacy', [PrivacyController::class, 'show'])->name('privacy.show');
 
 // How /dev/null was built, readable by everyone...
 Route::get('about', [AboutController::class, 'show'])->name('about.show');
+
+// Logos, colors, and backgrounds, downloadable by everyone...
+Route::get('brand', [BrandController::class, 'show'])->name('brand.show');
 
 // What was merged into production, readable by everyone...
 Route::get('changelog', [ChangelogController::class, 'index'])->name('changelog.index');

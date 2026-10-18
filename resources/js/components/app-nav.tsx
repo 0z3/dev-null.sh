@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import {
     Activity,
     Bell,
@@ -17,6 +17,7 @@ import {
 import type { ReactNode } from 'react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import BookmarkController from '@/actions/App/Http/Controllers/BookmarkController';
+import BrandController from '@/actions/App/Http/Controllers/BrandController';
 import ConversationController from '@/actions/App/Http/Controllers/ConversationController';
 import LogController from '@/actions/App/Http/Controllers/LogController';
 import ModerationController from '@/actions/App/Http/Controllers/ModerationController';
@@ -238,6 +239,11 @@ export function AppNav({
                 href={auth.log === null ? home() : LogController.show(auth.log)}
                 viewTransition
                 className="mb-8 rounded-md px-3 lg:px-3"
+                onContextMenu={(event) => {
+                    // Right-clicking the logo goes to the brand assets, like most brand sites...
+                    event.preventDefault();
+                    router.visit(BrandController.show());
+                }}
                 aria-label={
                     auth.log === null
                         ? '/dev/null, go to the home page'
