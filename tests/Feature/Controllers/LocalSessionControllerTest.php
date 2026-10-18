@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\Log;
 use App\Http\Controllers\SessionController;
 use App\Models\User;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -16,8 +17,8 @@ function registerRoutes(string $env): void
 
     Route::middleware('web')->group(base_path('routes/web.php'));
 
-    app('router')->getRoutes()->refreshNameLookups();
-    app('router')->getRoutes()->refreshActionLookups();
+    resolve(Router::class)->getRoutes()->refreshNameLookups();
+    resolve(Router::class)->getRoutes()->refreshActionLookups();
 }
 
 beforeEach(function (): void {
