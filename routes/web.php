@@ -37,6 +37,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FailedJobController;
 use App\Http\Controllers\FailedJobRetryController;
 use App\Http\Controllers\InboxController;
+use App\Http\Controllers\IssueController;
 use App\Http\Controllers\LocalSessionController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MentionController;
@@ -202,6 +203,10 @@ Route::get('search/commits', [CommitSearchController::class, 'index'])
     ->name('commit-search.index');
 
 Route::middleware('auth')->group(function (): void {
+    Route::post('issues', [IssueController::class, 'store'])
+        ->middleware('throttle:10,1')
+        ->name('issue.store');
+
     // Session...
     Route::post('logout', [SessionController::class, 'destroy'])
         ->name('logout');
