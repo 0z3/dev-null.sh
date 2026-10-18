@@ -9,6 +9,7 @@ import {
     memo,
     useCallback,
     useEffect,
+    useId,
     useLayoutEffect,
     useMemo,
     useRef,
@@ -19,15 +20,15 @@ import {
     MessageImages,
     MessageLinkCard,
     MessageText,
+    BubbleActions,
     Repliable,
-    ReplyButton,
     ReplyGhost,
 } from '@/components/chat/message-parts';
 import type { Author } from '@/components/chat/message-parts';
 import {
-    ReactionBar,
     ReactionChips,
     ReactionSheet,
+    ReactionTray,
     useTouchReactions,
 } from '@/components/chat/message-reactions';
 import { MessageStatusGlyph } from '@/components/chat/message-status';
@@ -748,6 +749,9 @@ function BubbleWithMeta({
     onReact: ((messageId: number, emoji: string) => void) | null;
 }) {
     const [isReacting, setIsReacting] = useState(false);
+    const [isTrayOpen, setIsTrayOpen] = useState(false);
+    const trayId = useId();
+    const reactButton = useRef<HTMLButtonElement>(null);
     const message =
         bubble.kind === 'message'
             ? bubble.message
@@ -811,6 +815,10 @@ function BubbleWithMeta({
         onReact !== null && bubble.kind === 'message'
             ? (emoji: string) => onReact(bubble.message.id, emoji)
             : null;
+    const toggleTray =
+        reactToThis === null
+            ? null
+            : () => setIsTrayOpen((isTrayOpen) => !isTrayOpen);
     const touch = useTouchReactions(
         reactToThis === null
             ? null
@@ -835,14 +843,6 @@ function BubbleWithMeta({
                     )}
                     {...touch}
                 >
-                    {reactToThis !== null && (
-                        <ReactionBar
-                            usage={usage}
-                            reacted={reacted}
-                            isMine={isMine}
-                            onReact={reactToThis}
-                        />
-                    )}
                     {reply !== null && (
                         <ReplyGhost
                             reply={reply}
@@ -854,10 +854,14 @@ function BubbleWithMeta({
                     {images.length > 0 && (
                         <div className="relative max-w-full">
                             <MessageImages images={images} />
-                            {replyToThis !== null && message.body === '' && (
-                                <ReplyButton
+                            {message.body === '' && (
+                                <BubbleActions
                                     isMine={isMine}
                                     onReply={replyToThis}
+                                    onReact={toggleTray}
+                                    isReacting={isTrayOpen}
+                                    reactRef={reactButton}
+                                    trayId={trayId}
                                 />
                             )}
                         </div>
@@ -887,16 +891,30 @@ function BubbleWithMeta({
                                 message={message}
                                 isMine={isOnPrimary}
                             />
-                            {replyToThis !== null && (
-                                <ReplyButton
-                                    isMine={isMine}
-                                    onReply={replyToThis}
-                                />
-                            )}
+                            <BubbleActions
+                                isMine={isMine}
+                                onReply={replyToThis}
+                                onReact={toggleTray}
+                                isReacting={isTrayOpen}
+                                reactRef={reactButton}
+                                trayId={trayId}
+                            />
                         </div>
                     )}
                     {bubble.kind === 'message' && (
                         <MessageLinkCard message={bubble.message} />
+                    )}
+                    {reactToThis !== null && (
+                        <ReactionTray
+                            id={trayId}
+                            isOpen={isTrayOpen}
+                            onOpenChange={setIsTrayOpen}
+                            trigger={reactButton}
+                            usage={usage}
+                            reacted={reacted}
+                            isMine={isMine}
+                            onReact={reactToThis}
+                        />
                     )}
                     <ReactionChips
                         reactions={reactions}

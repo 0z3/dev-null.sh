@@ -35,6 +35,7 @@ This file documents the platform's features, stack, and stories. Feature entries
   - [Muting and blocking](#muting-and-blocking)
   - [Reporting commits](#reporting-commits)
   - [Appearance, color, and timezone](#appearance-color-and-timezone)
+  - [Installing /dev/null as an app](#installing-devnull-as-an-app)
   - [Activity graphs and README embeds](#activity-graphs-and-readme-embeds)
   - [Keyboard shortcuts](#keyboard-shortcuts)
   - [Terminal commits](#terminal-commits)
@@ -265,6 +266,14 @@ Settings → Appearance offers **Light**, **Dark**, or **System** theme and a sh
 Profile settings also let you share a timezone. Timestamps can show the author's local time as well as the viewer's when a timezone is shared. Leaving it unset uses the browser's timezone for your display without publishing your timezone. These /dev/null preferences are separate from your GitHub-managed profile information.
 
 Sources: [appearance settings](resources/js/pages/appearance/update.tsx), [lane picker](resources/js/components/lane-picker.tsx), [timezone picker](resources/js/components/timezone-picker.tsx), [timestamp tooltip](resources/js/components/timestamp-tooltip.tsx).
+
+### Installing /dev/null as an app
+
+/dev/null is a progressive web app. Browsers that support installation (Chrome, Edge, and Safari's **Add to Home Screen** / **Add to Dock**) offer to install it from the web app manifest; the installed app opens in its own window without browser controls, uses the app icon, and follows the Light, Dark, or System appearance in its title and status bars. The app's icon menu offers shortcuts to the Following log, the Latest log, and Notifications. Opening a /dev/null link while the app is installed focuses the existing window instead of opening another.
+
+A service worker caches the built assets of the current release and shows an offline page when a page cannot be reached; the page reloads on its own once the connection returns. Pages themselves are never cached, so nothing a signed-in user sees is kept after signing out, and there is no offline reading of logs or offline posting. There are no push notifications; the installed app polls for new notifications and messages the same way the browser does.
+
+Sources: [web app manifest](public/site.webmanifest), [service worker](public/sw.js), [offline page](public/offline.html), [service worker registration](resources/js/lib/service-worker.ts), [document head](resources/views/app.blade.php), [manifest tests](tests/Feature/WebAppManifestTest.php).
 
 ### Activity graphs and README embeds
 
