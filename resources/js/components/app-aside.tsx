@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Search } from 'lucide-react';
+import AboutController from '@/actions/App/Http/Controllers/AboutController';
 import PrivacyController from '@/actions/App/Http/Controllers/PrivacyController';
 import TermsController from '@/actions/App/Http/Controllers/TermsController';
 import UserFollowersController from '@/actions/App/Http/Controllers/UserFollowersController';
@@ -176,6 +177,12 @@ export function AppAside({
                     </kbd>
                 </button>
                 <div className="flex gap-4">
+                    <Link
+                        href={AboutController.show()}
+                        className="transition-colors hover:text-foreground"
+                    >
+                        About
+                    </Link>
                     <nav aria-label="Legal" className="flex gap-4">
                         <Link
                             href={TermsController.show()}

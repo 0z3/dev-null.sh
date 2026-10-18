@@ -11,6 +11,7 @@ import { CommitPoll } from '@/components/commit-poll';
 import { CommitQuoteButton } from '@/components/commit-quote-button';
 import { CommitSecondaryActions } from '@/components/commit-secondary-actions';
 import { CommitStarButton } from '@/components/commit-star-button';
+import { CommitStatusBadge } from '@/components/commit-status-badge';
 import {
     ThreadActions,
     ThreadReplies,
@@ -243,24 +244,7 @@ export function CommitCard({
                                     </Link>
                                 </TimestampTooltip>
 
-                                {commit.status !== 'approved' && (
-                                    <span
-                                        className={cn(
-                                            'shrink-0 self-center rounded-full px-2 py-0.5 font-mono text-xs',
-                                            commit.status === 'pending'
-                                                ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
-                                                : 'bg-destructive/10 text-destructive',
-                                        )}
-                                        title={
-                                            commit.status === 'pending'
-                                                ? 'Only you can see this commit until it is approved.'
-                                                : 'This commit was rejected. Only you can see it.'
-                                        }
-                                        data-test="commit-status"
-                                    >
-                                        {commit.status}
-                                    </span>
-                                )}
+                                <CommitStatusBadge commit={commit} />
 
                                 <span className="relative ml-auto flex shrink-0 items-center self-center">
                                     <Link

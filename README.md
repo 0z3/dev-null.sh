@@ -16,20 +16,13 @@ composer setup
 
 The setup script installs dependencies, creates `.env`, generates an app key, runs migrations, and builds assets.
 
-### Local auto-login
+### Local sign-in
 
-To sign in locally without GitHub, set the following in `.env`:
-
-```dotenv
-APP_ENV=local
-AUTO_LOGIN=true
-```
-
-Run `composer dev` and visit `http://localhost:8000` (or your configured `APP_URL`). Auto-login only works in the local environment.
+With `APP_ENV=local`, run `composer dev`, visit `http://localhost:8000` (or your configured `APP_URL`), and sign in: a modal asks for a username and signs you in as that user, creating it if it doesn't exist yet. GitHub isn't involved at all. The routes are only registered in the local environment, see `routes/web.php`.
 
 ### GitHub login
 
-Leave `AUTO_LOGIN=false` to sign in using GitHub. Create a [GitHub OAuth app](https://github.com/settings/developers) with the callback URL `{APP_URL}/auth/github/callback`, then set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in `.env`.
+Outside the local environment, users sign in with GitHub. Create a [GitHub OAuth app](https://github.com/settings/developers) with the callback URL `{APP_URL}/auth/github/callback`, then set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in `.env`.
 
 ### Embeds
 

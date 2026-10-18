@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\Log;
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\Cli\ScriptController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\CommitSearchController;
 use App\Http\Controllers\CommitSitemapController;
 use App\Http\Controllers\CommitStarController;
 use App\Http\Controllers\CommitStarCountController;
+use App\Http\Controllers\CommitStatusController;
 use App\Http\Controllers\ConversationArchiveController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\ConversationDropController;
@@ -35,6 +37,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FailedJobController;
 use App\Http\Controllers\FailedJobRetryController;
 use App\Http\Controllers\InboxController;
+use App\Http\Controllers\LocalSessionController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MentionController;
 use App\Http\Controllers\MentionSuggestionController;
@@ -79,7 +82,6 @@ use App\Http\Controllers\UserSearchController;
 use App\Http\Controllers\UserSitemapController;
 use App\Http\Controllers\UserTimezoneController;
 use App\Http\Middleware\RememberIntendedUrl;
-use App\Http\Middleware\SignInLocalDeveloper;
 use App\Http\Middleware\ThrottleCommits;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -89,14 +91,19 @@ Route::get('commit', [ScriptController::class, 'show'])->name('cli-script.show')
 
 Route::middleware('guest')->group(function (): void {
     // Guests land straight on the Trending log...
-    Route::get('/', [LogController::class, 'index'])
-        ->middleware(SignInLocalDeveloper::class)
-        ->name('home');
+    Route::get('/', [LogController::class, 'index'])->name('home');
 
     // Session...
-    Route::get('login', [SessionController::class, 'create'])
-        ->middleware('throttle:10,1')
-        ->name('login');
+    if (app()->isLocal()) {
+        // Locally, signing in asks for any username in a modal, without GitHub...
+        Route::get('login', [LocalSessionController::class, 'create'])->name('login');
+        Route::post('login/local', [LocalSessionController::class, 'store'])->name('local-login.store');
+    } else {
+        Route::get('login', [SessionController::class, 'create'])
+            ->middleware('throttle:10,1')
+            ->name('login');
+    }
+
     Route::get('auth/github/callback', [SessionController::class, 'store'])
         ->middleware('throttle:10,1')
         ->name('login.store');
@@ -109,6 +116,9 @@ Route::get('log/{log}', [LogController::class, 'show'])->name('log.show');
 // Terms and privacy, readable by everyone...
 Route::get('terms', [TermsController::class, 'show'])->name('terms.show');
 Route::get('privacy', [PrivacyController::class, 'show'])->name('privacy.show');
+
+// How /dev/null was built, readable by everyone...
+Route::get('about', [AboutController::class, 'show'])->name('about.show');
 
 // What was merged into production, readable by everyone...
 Route::get('changelog', [ChangelogController::class, 'index'])->name('changelog.index');
@@ -171,6 +181,8 @@ Route::get('commit-images/{commitImage}', [CommitImageController::class, 'show']
     ->name('commit-image.show');
 Route::get('commits/{commit}/link-preview', [CommitLinkPreviewController::class, 'show'])
     ->name('commit-link-preview.show');
+Route::get('commits/{commit}/status', [CommitStatusController::class, 'show'])
+    ->name('commit-status.show');
 Route::get('commits/{commit}/replies', [CommitReplyController::class, 'index'])
     ->withTrashed()
     ->name('commit-reply.index');
