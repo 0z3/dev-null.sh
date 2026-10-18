@@ -17,7 +17,7 @@ final readonly class OpenAI
 
     private const string MODERATION_MODEL = 'omni-moderation-latest';
 
-    private const string REVIEW_MODEL = 'gpt-6-astra';
+    private const string REVIEW_MODEL = 'gpt-6.1-sol';
 
     /**
      * The efficient model, for the relevance verdict on every candidate of every search.
