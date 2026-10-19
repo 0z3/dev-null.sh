@@ -55,7 +55,7 @@ import { edit } from '@/routes/user-profile';
 import type { Log, NavItem, Profile } from '@/types';
 
 const navLabelClassName =
-    'sr-only opacity-0 transition-opacity duration-75 nav-wide:not-sr-only nav-wide:opacity-100 nav-wide:delay-200 motion-reduce:transition-none';
+    'max-w-0 overflow-hidden opacity-0 transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] nav-wide:max-w-40 nav-wide:opacity-100 motion-reduce:transition-none';
 
 /**
  * Guests see the same items, each taking them to sign in.
@@ -268,7 +268,7 @@ export function AppNav({
     const iconsOnly = !(useMediaQuery('(min-width: 64rem)') && sidebarOpen);
 
     return (
-        <header className="ml-auto flex h-svh w-20 scrollbar-none flex-col items-stretch overflow-x-hidden overflow-y-auto px-3.5 py-6 whitespace-nowrap transition-[width,padding] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] motion-reduce:transition-none nav-wide:w-64 nav-wide:px-4">
+        <header className="flex h-svh w-full scrollbar-none flex-col items-stretch overflow-x-hidden overflow-y-auto px-3.5 py-6 whitespace-nowrap transition-[padding] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] motion-reduce:transition-none nav-wide:px-4">
             <LogoMenu>
                 <Link
                     href={
@@ -284,9 +284,9 @@ export function AppNav({
                             : '/dev/null, go to your log'
                     }
                 >
-                    <AppLogoIcon className="size-7 self-center fill-current nav-wide:hidden" />
-                    <AppLogo className="hidden text-[1.75rem] font-bold tracking-[-0.03em] nav-wide:inline-flex" />
-                    <span className="invisible text-sm leading-5 text-muted-foreground nav-wide:visible">
+                    <AppLogoIcon className="col-start-1 row-start-1 size-7 self-center fill-current opacity-100 transition-opacity duration-300 motion-reduce:transition-none nav-wide:opacity-0" />
+                    <AppLogo className="col-start-1 row-start-1 w-max max-w-0 overflow-hidden text-[1.75rem] font-bold tracking-[-0.03em] opacity-0 transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] motion-reduce:transition-none nav-wide:max-w-52 nav-wide:opacity-100" />
+                    <span className="col-start-1 row-start-2 max-w-0 overflow-hidden text-sm leading-5 text-muted-foreground opacity-0 transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] motion-reduce:transition-none nav-wide:max-w-52 nav-wide:opacity-100">
                         a social network for devs
                     </span>
                 </Link>
@@ -299,7 +299,7 @@ export function AppNav({
                         item={item}
                         iconsOnly={iconsOnly}
                         className={cn(
-                            'relative isolate block rounded-lg py-3 pr-3 pl-4 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground nav-wide:pl-3',
+                            'relative isolate block h-11 rounded-lg py-3 pr-3 pl-4 text-[15px] leading-5 font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground nav-wide:pl-3',
                             {
                                 'text-primary hover:bg-transparent hover:text-primary':
                                     item.isActive,
@@ -338,7 +338,7 @@ export function AppNav({
                     <button
                         type="button"
                         onClick={onSearch}
-                        className="flex items-center gap-3 rounded-lg py-3 pr-3 pl-4 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground xl:hidden nav-wide:pl-3"
+                        className="flex h-11 items-center gap-3 rounded-lg py-3 pr-3 pl-4 text-[15px] leading-5 font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground xl:hidden nav-wide:pl-3"
                     >
                         <Search className="size-5" />
                         <span className={navLabelClassName}>Search</span>
@@ -354,10 +354,10 @@ export function AppNav({
                         aria-label="Write a commit"
                         aria-keyshortcuts="c"
                         title={iconsOnly ? undefined : 'Write a commit (C)'}
-                        className="flex items-center gap-3 rounded-lg bg-primary py-3 pr-3 pl-4 text-[15px] font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none nav-wide:pl-3"
+                        className="flex h-11 items-center gap-3 rounded-lg bg-primary py-3 pr-3 pl-4 text-[15px] leading-5 font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none nav-wide:pl-3"
                         data-test="nav-commit-button"
                     >
-                        <SquarePen className="size-5" />
+                        <SquarePen className="size-5 shrink-0" />
                         <span className={navLabelClassName}>Commit</span>
                     </button>
                 </NavTooltip>
@@ -382,13 +382,13 @@ export function AppNav({
                                   ? 'Collapse navigation'
                                   : 'Expand navigation'
                         }
-                        className="hidden items-center gap-3 rounded-lg py-3 pr-3 pl-4 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:flex nav-wide:pl-3"
+                        className="hidden h-11 items-center gap-3 rounded-lg py-3 pr-3 pl-4 text-[15px] leading-5 font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:flex nav-wide:pl-3"
                         data-test="nav-collapse-button"
                     >
                         {sidebarOpen ? (
-                            <PanelLeftOpen className="size-5" />
+                            <PanelLeftOpen className="size-5 shrink-0" />
                         ) : (
-                            <PanelLeftClose className="size-5" />
+                            <PanelLeftClose className="size-5 shrink-0" />
                         )}
                         <span className={navLabelClassName}>
                             {sidebarOpen ? 'Collapse' : 'Expand'}
@@ -406,7 +406,7 @@ export function AppNav({
                         data-test="user-menu-button"
                     >
                         <UserAvatar user={auth.user} className="size-9" />
-                        <span className="hidden min-w-0 flex-1 nav-wide:block">
+                        <span className="max-w-0 min-w-0 flex-1 overflow-hidden opacity-0 transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] motion-reduce:transition-none nav-wide:max-w-40 nav-wide:opacity-100">
                             <span className="block truncate text-sm font-medium">
                                 {auth.user.name}
                             </span>

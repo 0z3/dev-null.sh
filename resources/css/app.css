@@ -24,6 +24,28 @@
         }
     }
 }
+@property --sidebar-width {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 80px;
+}
+
+@media (min-width: 64rem) {
+    [data-nav] {
+        --sidebar-width: 256px;
+        transition: --sidebar-width 300ms cubic-bezier(0.33, 1, 0.68, 1);
+    }
+
+    [data-nav='collapsed'] {
+        --sidebar-width: 80px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-nav] {
+        transition: none;
+    }
+}
 @custom-variant reply-hover {
     @media (hover: hover) {
         [data-reply]:hover:not(:has([data-reply]:hover)) & {
