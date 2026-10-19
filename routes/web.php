@@ -356,6 +356,7 @@ Route::middleware('auth')->group(function (): void {
 
     // Operations...
     Route::get('operations', [OperationsController::class, 'show'])->name('operations.show');
+    Route::get('operations/features', [FeatureController::class, 'index'])->name('feature.index');
     Route::get('operations/activity', [SiteActivityController::class, 'show'])->name('site-activity.show');
     Route::get('operations/traffic', [TrafficController::class, 'show'])->name('traffic.show');
     Route::post('operations/failed-jobs/{failedJob}/retry', [FailedJobRetryController::class, 'store'])

@@ -2,6 +2,7 @@ import { router, usePage, usePoll } from '@inertiajs/react';
 import { RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import type { PropsWithChildren } from 'react';
+import FeatureController from '@/actions/App/Http/Controllers/FeatureController';
 import OperationsController from '@/actions/App/Http/Controllers/OperationsController';
 import SiteActivityController from '@/actions/App/Http/Controllers/SiteActivityController';
 import TrafficController from '@/actions/App/Http/Controllers/TrafficController';
@@ -14,6 +15,7 @@ const REFRESH_SECONDS = 15;
 
 type OperationsTab =
     | 'operations/show'
+    | 'operations/features'
     | 'operations/activity'
     | 'operations/traffic';
 
@@ -24,12 +26,12 @@ export const TAB_PROPS: Record<OperationsTab, string[]> = {
     'operations/show': [
         'connectivity',
         'githubRateLimit',
-        'features',
         'queues',
         'failedJobs',
         'pendingModerationCount',
         'linkPreviews',
     ],
+    'operations/features': ['features'],
     'operations/activity': ['volume', 'activity', 'breakdowns'],
     'operations/traffic': ['traffic', 'trafficRange'],
 };
@@ -73,6 +75,11 @@ export default function OperationsLayout({ children }: PropsWithChildren) {
             title: 'Health',
             href: OperationsController.show(),
             isActive: isCurrentUrl(OperationsController.show()),
+        },
+        {
+            title: 'Features',
+            href: FeatureController.index(),
+            isActive: isCurrentUrl(FeatureController.index()),
         },
         {
             title: 'Activity',

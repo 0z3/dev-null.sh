@@ -32,7 +32,6 @@ it('shows the operational health of the app to admins', function (): void {
             ->where('connectivity', ['database' => true, 'cache' => true])
             ->where('linkPreviews', ['pending' => 1, 'failed' => 1])
             ->where('pendingModerationCount', 2)
-            ->where('features', [['name' => 'translations', 'enabled' => true]])
             ->where('hasTraffic', false)
             ->missing('githubRateLimit'));
 });

@@ -12,7 +12,6 @@ use App\Queries\FathomTrafficQuery;
 use App\Queries\GitHubRateLimitQuery;
 use App\Queries\LinkPreviewHealthQuery;
 use App\Queries\QueueBacklogQuery;
-use App\Services\Features;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,7 +28,6 @@ final readonly class OperationsController
         LinkPreviewHealthQuery $linkPreviews,
         GitHubRateLimitQuery $githubRateLimit,
         FathomTrafficQuery $traffic,
-        Features $features,
     ): Response {
         return Inertia::render('operations/show', [
             'queues' => $queues->get(...),
@@ -37,7 +35,6 @@ final readonly class OperationsController
             'connectivity' => $connectivity->get(...),
             'linkPreviews' => $linkPreviews->get(...),
             'pendingModerationCount' => fn (): int => Commit::query()->pending()->count(),
-            'features' => $features->all(...),
             'hasTraffic' => $traffic->isConfigured(),
             ...$githubRateLimit->isConfigured() ? [
                 'githubRateLimit' => Inertia::defer($githubRateLimit->get(...)),

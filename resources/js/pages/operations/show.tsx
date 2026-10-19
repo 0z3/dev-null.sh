@@ -1,10 +1,9 @@
 import { Deferred, Head, Link, router, usePage } from '@inertiajs/react';
 import { RotateCcw, Trash2 } from 'lucide-react';
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import FailedJobController from '@/actions/App/Http/Controllers/FailedJobController';
 import FailedJobRetryController from '@/actions/App/Http/Controllers/FailedJobRetryController';
-import FeatureController from '@/actions/App/Http/Controllers/FeatureController';
 import ModerationController from '@/actions/App/Http/Controllers/ModerationController';
 import { EmptyFeed } from '@/components/commit-feed';
 import { Field, Section } from '@/components/operations/section';
@@ -20,7 +19,6 @@ import type {
     Connectivity,
     FailedJob,
     FailedJobs,
-    Feature,
     GitHubRateLimit,
     LinkPreviewHealth,
     QueueBacklog,
@@ -29,17 +27,6 @@ import type {
 const STALE_JOB_SECONDS = 300;
 
 const LEAVE_DELAY_MS = 700;
-
-const FEATURES: Record<
-    Feature['name'],
-    { label: string; description: string }
-> = {
-    translations: {
-        label: 'translations',
-        description:
-            'The Translate control, cached translations, and background language detection. Off stops new detection jobs from being queued and skips any already waiting.',
-    },
-};
 
 function classBasename(name: string): string {
     return name.split('\\').pop() ?? name;
@@ -128,85 +115,6 @@ function GitHubRateLimitSkeleton() {
             </div>
             <Skeleton className="h-1 max-w-56 rounded-full" />
         </div>
-    );
-}
-
-function FeatureRow({ feature }: { feature: Feature }) {
-    const [processing, setProcessing] = useState(false);
-    const labelId = useId();
-    const descriptionId = useId();
-    const { label, description } = FEATURES[feature.name];
-
-    const toggle = () => {
-        if (processing) {
-            return;
-        }
-
-        const enabled = !feature.enabled;
-
-        router.put(
-            FeatureController.update.url(feature.name),
-            { enabled },
-            {
-                only: ['features'],
-                preserveState: true,
-                preserveScroll: true,
-                onStart: () => setProcessing(true),
-                onFinish: () => setProcessing(false),
-                onSuccess: () =>
-                    toast(
-                        <span className="font-mono text-[13px]">
-                            {enabled
-                                ? `Switched ${label} on for everyone`
-                                : `Switched ${label} off for everyone`}
-                        </span>,
-                    ),
-                onError: () =>
-                    toast.error(
-                        <span className="font-mono text-[13px]">
-                            fatal: could not switch {label}{' '}
-                            {enabled ? 'on' : 'off'}
-                        </span>,
-                    ),
-            },
-        );
-    };
-
-    return (
-        <li
-            className="flex items-start justify-between gap-6 px-4 py-3"
-            data-test="feature"
-        >
-            <div className="min-w-0 space-y-1">
-                <p id={labelId} className="font-mono text-[13px] font-medium">
-                    {label}
-                </p>
-                <p id={descriptionId} className="text-sm text-muted-foreground">
-                    {description}
-                </p>
-            </div>
-            <button
-                type="button"
-                role="switch"
-                aria-checked={feature.enabled}
-                aria-labelledby={labelId}
-                aria-describedby={descriptionId}
-                aria-disabled={processing}
-                onClick={toggle}
-                className={cn(
-                    'mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full border border-transparent p-0.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
-                    feature.enabled ? 'bg-primary' : 'bg-muted-foreground/30',
-                )}
-                data-test={`feature-${feature.name}-switch`}
-            >
-                <span
-                    className={cn(
-                        'size-4.5 rounded-full bg-background shadow-sm transition-transform motion-reduce:transition-none',
-                        feature.enabled && 'translate-x-5',
-                    )}
-                />
-            </button>
-        </li>
     );
 }
 
@@ -391,7 +299,6 @@ export default function Show({
     connectivity,
     linkPreviews,
     pendingModerationCount,
-    features,
     githubRateLimit,
 }: {
     queues: QueueBacklog[];
@@ -399,7 +306,6 @@ export default function Show({
     connectivity: Connectivity;
     linkPreviews: LinkPreviewHealth;
     pendingModerationCount: number;
-    features: Feature[];
     githubRateLimit?: GitHubRateLimit | null;
 }) {
     const { deferredProps } = usePage();
@@ -443,17 +349,6 @@ export default function Show({
                         </Field>
                     )}
                 </dl>
-            </Section>
-
-            <Section
-                title="Features"
-                meta={`${formatCount(features.filter((feature) => !feature.enabled).length)} off`}
-            >
-                <ul className="divide-y rounded-lg border">
-                    {features.map((feature) => (
-                        <FeatureRow key={feature.name} feature={feature} />
-                    ))}
-                </ul>
             </Section>
 
             <Section title="Queues" meta="database">

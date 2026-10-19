@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/react';
 import { useEffect } from 'react';
+import FeatureController from '@/actions/App/Http/Controllers/FeatureController';
 import LogController from '@/actions/App/Http/Controllers/LogController';
 import OperationsController from '@/actions/App/Http/Controllers/OperationsController';
 import SiteActivityController from '@/actions/App/Http/Controllers/SiteActivityController';
@@ -17,6 +18,7 @@ const tabGroups = [
     [editProfile().url, editAppearance().url],
     [
         OperationsController.show().url,
+        FeatureController.index().url,
         SiteActivityController.show().url,
         TrafficController.show().url,
     ],
