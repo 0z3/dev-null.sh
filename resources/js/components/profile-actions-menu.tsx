@@ -19,6 +19,13 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import type { User } from '@/types';
 
 const hours = Array.from({ length: 12 }, (_, index) => index + 1);
@@ -113,21 +120,27 @@ export function ProfileActionsMenu({ user }: { user: Pick<User, 'live'> }) {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="live-hours">For</Label>
-                                    <select
-                                        id="live-hours"
-                                        name="hours"
-                                        defaultValue={2}
-                                        className="flex h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
-                                        data-test="live-hours-select"
-                                    >
-                                        {hours.map((count) => (
-                                            <option key={count} value={count}>
-                                                {count === 1
-                                                    ? '1 hour'
-                                                    : `${count} hours`}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <Select name="hours" defaultValue="2">
+                                        <SelectTrigger
+                                            id="live-hours"
+                                            className="w-full"
+                                            data-test="live-hours-select"
+                                        >
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="max-h-60">
+                                            {hours.map((count) => (
+                                                <SelectItem
+                                                    key={count}
+                                                    value={String(count)}
+                                                >
+                                                    {count === 1
+                                                        ? '1 hour'
+                                                        : `${count} hours`}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <InputError message={errors.hours} />
                                 </div>
 
