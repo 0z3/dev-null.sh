@@ -11,6 +11,7 @@ This file documents the platform's features, stack, and stories. Feature entries
   - [Public browsing and GitHub sign-in](#public-browsing-and-github-sign-in)
   - [First-time setup](#first-time-setup)
   - [Profiles and GitHub sync](#profiles-and-github-sync)
+  - [Going live](#going-live)
   - [Achievement badges and XP](#achievement-badges-and-xp)
   - [Following developers and suggestions](#following-developers-and-suggestions)
   - [Following, Latest, and Trending logs](#following-latest-and-trending-logs)
@@ -50,6 +51,7 @@ This file documents the platform's features, stack, and stories. Feature entries
   - [Moderation](#moderation)
   - [Operations dashboard](#operations-dashboard)
   - [About, changelog, and policies](#about-changelog-and-policies)
+  - [Tom's repository insights and community statistics](#toms-repository-insights-and-community-statistics)
   - [Hello world replies](#hello-world-replies)
 - [Stack and hosting](#stack-and-hosting)
 - [Lore](#lore)
@@ -86,7 +88,7 @@ Livestream history: the team agreed on GitHub-only sign-in and importing profile
 
 ### First-time setup
 
-The first GitHub sign-in opens a short onboarding flow: review your mirrored profile, choose a color, follow suggested developers, and learn about the composer, keyboard shortcuts, and terminal commits. Skip setup at any step or finish it to continue to the app. Completed or skipped setup does not appear again. New users also start with Tom as a mutual follow; Tom is the platform's fictional welcome bot. Tag @tom in a public commit to ask about the platform or find posts on a topic when the OpenCode integration is configured.
+The first GitHub sign-in opens a short onboarding flow: review your mirrored profile (after editing it on GitHub, **Sync from GitHub** pulls the changes in without leaving setup), choose a color, follow suggested developers, and learn about the composer, keyboard shortcuts, and terminal commits. Skip setup at any step or finish it to continue to the app. Completed or skipped setup does not appear again. New users also start with Tom as a mutual follow; Tom is the platform's fictional welcome bot. Tag @tom in a public commit to ask about the platform or find posts on a topic when the OpenCode integration is configured.
 
 Sources: [onboarding page](resources/js/pages/onboarding/show.tsx), [sign-in tests](tests/Feature/Controllers/SessionControllerTest.php).
 
@@ -99,6 +101,14 @@ Change your name, avatar, bio, company, location, or website on GitHub, not on /
 Profiles also show [achievement badges and an XP-based Unix rank](#achievement-badges-and-xp). Click a badge or rank to inspect unlock requirements and progress.
 
 Sources: [profile page](resources/js/pages/user/show.tsx), [profile settings](resources/js/pages/user-profile/edit.tsx), [profile sharing](resources/js/components/profile-share-button.tsx), [identity sync](app/Actions/UpdateOrCreateUser.php).
+
+### Going live
+
+Share a stream you are running from the **…** menu on your own profile: **Go live** takes a link to a single YouTube video (a `/live/` link, a watch link, an embed, or one with a start time all work) and how long to show it, from **1 to 12 hours** (two by default). YouTube is the only supported platform. While you are live, your avatar gets a red ring and a **Live** marker on your profile, in logs, and in hover cards. Hovering it (or tapping it on a touch screen) shows the stream's live thumbnail with a **Watch** button; the stream itself plays on YouTube in a new tab, never embedded. On your profile, the avatar links straight to the stream.
+
+**End stream** in the same menu stops it at once; otherwise it stops showing when the chosen time runs out, and the scheduler clears it within five minutes. Only the platform, the link, and the end time are stored, and they are included in your export.
+
+Sources: [go-live menu](resources/js/components/profile-actions-menu.tsx), [live avatar and card](resources/js/components/live-stream-card.tsx), [validation](app/Http/Requests/UpdateUserLiveRequest.php), [YouTube links](app/Services/LivePlatforms/YouTube.php), [ending streams](app/Jobs/EndLiveStreams.php).
 
 ### Achievement badges and XP
 
@@ -122,7 +132,7 @@ Profiles display **13 achievement badges**. Locked badges show progress toward t
 
 Commit counts include replies and quotes. Commit-based badges and XP use non-deleted commits visible to the person viewing the profile, so an author may see progress from pending or rejected commits that other viewers cannot see. Streak badges use the **longest** streak, not the current streak: missing a day does not by itself remove them. Days follow the activity graph's app-timezone grouping, not the user's selected display timezone.
 
-Badges are calculated from current account data, not permanently recorded awards. Removing qualifying activity can reduce progress or lock a badge again; for example, unstarring a commit can remove **stargazer**. Unlocking a badge does not normally give bonus XP. XP comes from **10 per commit**, **15 per day in the longest streak**, **5 per star received**, **5 per reply to another developer**, and **2 per star given to another developer**. The **luddite** penalty applies once while the badge is unlocked, not once per unfollow, and total XP cannot fall below zero. A qualifying reply contributes both commit XP and reply XP; pastéis do not add XP.
+Badges are calculated from current account data, not permanently recorded awards. Removing qualifying activity can reduce progress or lock a badge again; for example, unstarring a commit can remove **stargazer**. When a commit posted on the web unlocks a badge, a toast names it and confetti drops; clicking an unlocked badge drops confetti again. Unlocking a badge does not normally give bonus XP. XP comes from **10 per commit**, **15 per day in the longest streak**, **5 per star received**, **5 per reply to another developer**, and **2 per star given to another developer**. The **luddite** penalty applies once while the badge is unlocked, not once per unfollow, and total XP cannot fall below zero. A qualifying reply contributes both commit XP and reply XP; pastéis do not add XP.
 
 Sources: [badge definitions](app/Enums/Achievement.php), [unlock conditions and XP calculation](app/Queries/UserAchievementsQuery.php), [streak calculation](app/Queries/UserStreakQuery.php), [achievements dialog](resources/js/components/achievements-dialog.tsx).
 
@@ -130,7 +140,7 @@ Sources: [badge definitions](app/Enums/Achievement.php), [unlock conditions and 
 
 Follow or unfollow from a developer's profile or a follow control elsewhere in the app. Following puts their commits in your Following log. You cannot follow yourself or follow across a block. GitHub follows are imported once: connections to developers already on /dev/null are added in both directions, with up to 1,000 GitHub connections checked each way. This is not continuous synchronization, so unfollowing someone on /dev/null sticks.
 
-**Who to follow** suggests developers in the side column or within the log on smaller screens. Show or hide these suggestions in Settings → Appearance. You can also follow back from the notifications list.
+**Who to follow** suggests developers in the side column or within the log on smaller screens, each with the first line of their bio and why they are suggested (how many people you follow follow them, or their follower count). Someone who already follows you gets **Follow back**. Show or hide these suggestions in Settings → Appearance. You can also follow back from the notifications list.
 
 Sources: [follow import](app/Actions/CreateUserGitHubFollows.php), [appearance settings](resources/js/pages/appearance/update.tsx), [notifications page](resources/js/pages/notification/index.tsx).
 
@@ -152,7 +162,7 @@ Livestream history: the team agreed to build semantic search on [day two at 2:57
 
 ### Writing commits
 
-A **commit** is a post on /dev/null, not a Git commit in a repository. Open the composer or press **c**, write your update, and choose **Commit** or press **⌘/Ctrl+Enter**. Text-only commits accept 3–4,000 characters. In the browser, an image attachment makes the text optional, but the 4,000-character maximum still applies. Lists fold posts longer than 280 characters or 8 lines behind **Show more**, without cutting through code. Commits can be created and deleted, but not edited after publication.
+A **commit** is a post on /dev/null, not a Git commit in a repository. Open the composer or press **c**, write your update, and choose **Commit** or press **⌘/Ctrl+Enter**. Text-only commits accept 3–4,000 characters; as you type, the ring around your avatar in the composer fills toward that limit. In the browser, an image attachment makes the text optional, but the 4,000-character maximum still applies. Lists fold posts longer than 280 characters or 8 lines behind **Show more**, without cutting through code. Commits can be created and deleted, but not edited after publication.
 
 Commits, replies, quotes, scheduling, terminal submissions, and app (signed API) commits share a limit of 10 attempts per minute per user. Posts go through [moderation](#moderation), so a newly submitted commit may be pending rather than public immediately; admins and authors with a good reputation are approved at once.
 
@@ -186,7 +196,7 @@ Sources: [body renderer](resources/js/components/commit-body.tsx), [code blocks]
 
 Use the composer's eye button or **⌘/Ctrl+Shift+P** to preview a commit or reply before submitting it. Preview shows the rendered code, emoji, mentions, links, and images, and identifies the link selected for a card. Esc returns from preview to writing.
 
-The composer checks text for recognizable secrets, such as credentials, and asks for confirmation before posting a flagged draft. Draft text containing detected secrets is not persisted in the local stash. Treat this as a warning, not a guarantee that all secrets will be detected: review text and images yourself before publishing. Public GitHub issue drafts require detected secrets to be removed rather than offering a publish-anyway option.
+The composer checks text for recognizable secrets, such as credentials, and asks for confirmation before posting a flagged draft. The warning can be minimized to a shield icon while you keep editing, for example after a false positive. Draft text containing detected secrets is not persisted in the local stash. Treat this as a warning, not a guarantee that all secrets will be detected: review text and images yourself before publishing. Public GitHub issue drafts require detected secrets to be removed rather than offering a publish-anyway option.
 
 Sources: [composer](resources/js/components/commit-composer.tsx), [secret warning](resources/js/hooks/use-secret-warning.ts), [sensitive-text handling](resources/js/lib/sensitive-text.ts), [issue commands](resources/js/components/issue-command.tsx).
 
@@ -234,7 +244,7 @@ Livestream history: on [day two at 7:31:27](https://www.youtube.com/watch?v=nfmV
 
 ### Polls and voting
 
-Add a poll to a top-level commit with **two to four distinct options**, each up to **50 characters**, and a duration of **one hour, one day, three days, or seven days**. Polls cannot accompany images or be added to replies. Voting opens when the commit is approved, so time spent pending does not consume the voting period.
+Add a poll to a top-level commit with **two to four distinct options**, each up to **50 characters** (with the same emoji suggestions and `:shortcode:` conversion as the commit body), and a duration of **one hour, one day, three days, or seven days**. Polls cannot accompany images or be added to replies. Voting opens when the commit is approved, so time spent pending does not consume the voting period.
 
 Signed-in readers can choose one option and vote once while an approved, visible poll is open; a vote cannot be changed or withdrawn. The author cannot vote in their own poll. Results are visible to the author and people who have voted, and to everyone once the poll closes. Other people's individual votes are not revealed.
 
@@ -397,7 +407,7 @@ Sources: [workflow instructions](resources/js/pages/terminal/show.tsx), [GitHub 
 
 ### Public read API and Atom feeds
 
-The read-only JSON API at `/api/v1` requires no authentication or token. Read a public profile at `/api/v1/users/{username}`, that user's commits at `/api/v1/users/{username}/commits`, or one commit at `/api/v1/commits/{commit}`. Add `?replies=1` to the user-commits endpoint to read their replies instead of top-level commits. Lists use cursor pagination, 20 items per page. Only public approved, non-deleted content is returned, not private profile data such as email. Unsigned requests are limited to **60 requests per minute per IP** and cannot create posts, follow, or star; terminal posting and the [signed API](#signed-api-and-devices) are separate signed interfaces.
+The read-only JSON API at `/api/v1` requires no authentication or token. Read a public profile at `/api/v1/users/{username}`, that user's commits at `/api/v1/users/{username}/commits`, or one commit at `/api/v1/commits/{commit}`. `/api/v1/users/{username}/followers` and `/following` list people the way the profile's people lists do, newest follow first; a signed request also gets each person's lane and whether you follow each other. Add `?replies=1` to the user-commits endpoint to read their replies instead of top-level commits. Lists use cursor pagination: 20 commits or 30 people per page. Only public approved, non-deleted content is returned, not private profile data such as email. Unsigned requests are limited to **60 requests per minute per IP** and cannot create posts, follow, or star; terminal posting and the [signed API](#signed-api-and-devices) are separate signed interfaces.
 
 Subscribe in a feed reader to `/@{username}/feed.atom` for a profile's latest **50 approved top-level commits**, including image enclosures. Feeds are public and can be cached for five minutes.
 
@@ -424,7 +434,7 @@ Sources: [signed requests](app/Services/SignedRequests.php), [sign-in page](app/
 
 ### Bug reports and feature requests
 
-Start a fresh commit draft with **`/bug `** or **`/feature `** to switch it into an issue draft. Submitting opens a **public GitHub issue** on `nunomaduro/dev-null.sh`, crediting you, rather than posting a normal commit. The composer offers command suggestions and a way to cancel back to a commit. Issue drafts are text-only and accept 3–4,000 characters; remove detected secrets before submission.
+Start a fresh commit draft with **`/bug `** or **`/feature `** to switch it into an issue draft. Submitting opens a **public GitHub issue** on `nunomaduro/dev-null.sh`, crediting you, rather than posting a normal commit. The issue includes your browser and screen details (browser, OS, viewport, pixel ratio, language, color scheme, and the current page) in a collapsed Environment section. The composer offers command suggestions and a way to cancel back to a commit. Issue drafts are text-only and accept 3–4,000 characters; remove detected secrets before submission.
 
 Successful issue creation is limited to **five issues per hour per user**. If GitHub or the connection fails, the draft stays available. Check upstream before retrying an uncertain submission to avoid duplicates. Use a commit's Report control instead when reporting abusive content.
 
@@ -448,7 +458,7 @@ Sources: [account deletion confirmation](resources/js/components/delete-user.tsx
 
 ### Moderation
 
-Commits and replies may be pending, approved, or rejected. A commit is approved at once when its author is an admin, or has a good reputation: an account older than an hour, at least one approved commit, at least 10 followers, and no undismissed report filed against any of their commits in the last seven days (deleted and rejected commits included). Other commits start pending. When OpenAI is configured, automated moderation checks the commits of authors without a good reputation: clean commits are approved, near-certain violations are rejected without a reason, and anything else waits for a moderator. While an author has an undismissed recent report, none of their commits is approved automatically: authors with a good reputation skip the automated check, and a clean verdict for anyone else still waits for a moderator. Pending and rejected content is not publicly visible; its author can still see its status. Approval makes content eligible for public lists and releases reply, quote, and mention notifications, but does not notify the author. Rejection notifies the author, with the moderator's reason when one is given. Moderation applies to browser, scheduled, terminal, and app submissions alike.
+Commits and replies may be pending, approved, or rejected. A commit is approved at once when its author is an admin, or has a good reputation: an account older than an hour, at least one approved commit, at least 10 followers, and no undismissed report filed against any of their commits in the last seven days (deleted and rejected commits included). Other commits start pending. When OpenAI is configured, automated moderation checks the commits of authors without a good reputation: clean commits are approved, near-certain violations are rejected without a reason, and anything else waits for a moderator. While an author has an undismissed recent report, none of their commits is approved automatically: authors with a good reputation skip the automated check, and a clean verdict for anyone else still waits for a moderator. Pending and rejected content is not publicly visible; its author can still see its status. On a pending commit, a badge tells the author whether it is still being checked automatically (usually a few seconds, polled for about half a minute) or waiting for a moderator; when the check approves it while the author is looking, the badge shows a check mark. Approval makes content eligible for public lists and releases reply, quote, and mention notifications, but does not notify the author. Rejection notifies the author, with the moderator's reason when one is given. Moderation applies to browser, scheduled, terminal, and app submissions alike.
 
 Moderators are the site administrators, set by GitHub username in the `ADMINS` environment variable. They have a moderation queue at `/moderation` for reviewing pending commits oldest first, with the automated verdict and a translation: approve or reject each (with an optional reason up to 280 characters), or approve up to 100 at once. A reports queue at `/moderation/reports` lists user-reported content. Moderators can dismiss reports or reject reported commits. These are restricted tools, not controls every account receives.
 
@@ -467,6 +477,16 @@ Sources: [operations controller](app/Http/Controllers/OperationsController.php),
 The public **About** page describes the livestream project and its contributors. The **Changelog**, opened from the navigation or the side column, lists the pull requests merged into `production` on GitHub, a few days at a time. The **Brand** page at `/brand` offers the logo, wordmark, colors, typography, and wallpapers; right-clicking the logo in the navigation also copies it or links there. **Terms** and **Privacy** explain acceptable use and data handling. Public posts may be indexed or copied outside /dev/null; content and search queries can be processed by automated or AI services. Read those policies before posting sensitive information or relying on deletion to remove every external copy.
 
 Sources: [public page routes](routes/web.php), [About](resources/js/pages/about/show.tsx), [privacy policy](resources/js/pages/privacy/show.tsx), [terms](resources/js/pages/terms/show.tsx).
+
+### Tom's repository insights and community statistics
+
+Tom can read public GitHub data for `nunomaduro/dev-null.sh`: up to ten top contributors by GitHub-reported commit count (excluding bots), recent pull requests merged into `production`, open issues labelled **good first issue** or **help wanted**, stars and forks, separate open-issue and open-PR counts, and repository language bytes. These are read-only tools, not arbitrary repository access. A merge does not prove deployment, and a limited list is not an exhaustive count. GitHub insights are cached for fifteen minutes; contributor data can lag by hours and changelog pages have an additional thirty-minute cache. Public reads reuse the application's existing GitHub OAuth credentials, not a user's token.
+
+Tom can also count current onboarded members (excluding Tom), members whose accounts were created in the last seven or thirty days, and distinct members who posted approved, non-deleted public commits or replies during those windows. Public-author counts are not online-user counts. These aggregates are cached for five minutes and include their observation time and definition.
+
+Country questions use whole-term matches against public profile location text, with UK and US aliases; they do not establish nationality or residence or infer countries from cities, names, IP addresses or timezones. Programming-language questions count mentions in public bios using a supported language list and explicit aliases. Ambiguous Go and C mentions require programming phrases. These counts describe profile text, not everyone who uses a language; missing or unrecognized text is not counted. The community tool returns aggregates, never lists of people, private messages or moderation data, and does not combine demographic filters. GitHub failures are reported as unavailable, not zero.
+
+Sources: [repository insights](app/Ai/Tools/RepositoryInsights.php), [community statistics](app/Ai/Tools/CommunityStats.php), [repository queries](app/Queries/RepositoryInsightsQuery.php), [community queries](app/Queries/CommunityStatsQuery.php).
 
 ### Hello world replies
 
@@ -521,6 +541,8 @@ The livestream team included:
 
 They built live from the JetBrains office, with community contributions becoming part of the project.
 
+**Márk Magyar** — [@xHeaven](https://github.com/xHeaven) — was later added to the core development team, due to the large amount of valuable contributions he made to the project during the livestream. Most contributions from those two days came from him.
+
 Watch the livestreams:
 
 - [Day one — Building a Social Network in PHP in 48 Hours](https://www.youtube.com/watch?v=6zCNQa3hNm0).
@@ -552,7 +574,7 @@ During the livestream, **Fernando Andrade — [@fernandofreamunde](https://dev-n
 
 On [day two at 5:47:37](https://www.youtube.com/watch?v=nfmVdXZfzUE&t=20857s), the team reads the message that he is downstairs with the pastries and arranges to meet him. At [5:58:16](https://www.youtube.com/watch?v=nfmVdXZfzUE&t=21496s), they thank Fernando and describe the Portuguese treats he brought. Earlier, at [5:34:42](https://www.youtube.com/watch?v=nfmVdXZfzUE&t=20082s), they had suggested dedicating a feature to the pastries, floating achievement badges. That was an idea, not the implementation of Pastéis mode.
 
-Another possible precursor appears on [day two at 7:18:53](https://www.youtube.com/watch?v=nfmVdXZfzUE&t=26333s): the team discusses a single custom emoji, a daily allowance, and giving multiple rewards, then defers it with “Not today.” The captions garble the proposed icon's name, so its connection to Pastéis mode remains tentative rather than a confirmed origin or implementation date.
+Another possible precursor appears on [day two at 7:18:53](https://www.youtube.com/watch?v=nfmVdXZfzUE&t=26333s): the team discusses a single custom emoji, a daily allowance, and giving multiple rewards, then defers it with “Not today.”
 
 The **pastel emoji** and **Pastéis mode** are a tribute to Fernando and that delivery. A real-world act of feeding the team became part of the platform's shared lore.
 
@@ -567,7 +589,7 @@ Sources:
 
 ### The pushup break
 
-The development stream also had an impromptu pushup break. On [day two at 2:16:46](https://www.youtube.com/watch?v=nfmVdXZfzUE&t=8206s), a call for ten pushups interrupts a discussion of image moderation. Counting and laughter follow, then someone asks, “Why are we doing push-ups?” at [2:17:14](https://www.youtube.com/watch?v=nfmVdXZfzUE&t=8234s). It is a livestream moment, not a product feature; the captions do not establish how many pushups anyone completed.
+The development stream also had an impromptu pushup break. On [day two at 2:16:46](https://www.youtube.com/watch?v=nfmVdXZfzUE&t=8206s), a call for ten pushups interrupts a discussion of image moderation. Counting and laughter follow, then Pauline asks, “Why are we doing push-ups?” at [2:17:14](https://www.youtube.com/watch?v=nfmVdXZfzUE&t=8234s). @nunomaduro and @paulinevos each proceeded to do ten push-ups. It is a livestream moment, not a product feature.
 
 ### The codename that stuck
 

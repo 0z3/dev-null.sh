@@ -34,12 +34,12 @@ What exists, one line each (details in the knowledge base):
 - **Commits:** text with code, images, link cards and embedded players, or a poll; replies, quotes, threads, scheduling, translation.
 - **Logs:** Following, Latest, and Trending.
 - **Engagement:** follows, stars, saved commits, pins, mentions, and pastéis (an opt-in daily allowance of pastries).
-- **Profiles:** mirrored from GitHub, with an activity graph, streaks, achievements, and a Unix rank.
+- **Profiles:** mirrored from GitHub, with an activity graph, streaks, achievements, a Unix rank, and a live marker while you stream on YouTube.
 - **Remotes:** private one-to-one and group messages (orgs).
 - **Notifications:** in-app only.
 - **Search:** developers by name, commits by meaning.
 - **Safety:** mute, block, reports, and moderation.
-- **Bots:** @tom answers questions about /dev/null from the knowledge base; @world answers "hello world".
+- **Bots:** @tom answers questions about /dev/null from the knowledge base, the public repository, and aggregate community statistics; @world answers "hello world".
 - **Data:** JSON export and account deletion.
 
 Rules every feature must keep:
