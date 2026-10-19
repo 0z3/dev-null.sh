@@ -19,6 +19,7 @@ export default defineConfig({
             'tests/Unit/QuoteReply.test.tsx',
             'tests/Unit/SearchDialogComposition.test.tsx',
             'tests/Unit/ReportResolution.test.tsx',
+            'tests/Unit/LinkifiedText.test.tsx',
         ],
     },
 });
