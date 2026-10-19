@@ -110,8 +110,13 @@ export function SuggestedUserRow({
                     <FollowButton
                         user={user}
                         isFollowing={false}
+                        followsYou={user.follows_you}
                         size="sm"
-                        className={cn('min-w-24 shrink-0', buttonClassName)}
+                        className={cn(
+                            'min-w-24 shrink-0',
+                            buttonClassName,
+                            user.follows_you && 'min-w-26',
+                        )}
                         only={['auth']}
                         preserveState
                         onSuccess={() => router.flushAll()}
