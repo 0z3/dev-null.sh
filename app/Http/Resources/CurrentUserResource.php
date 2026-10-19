@@ -24,6 +24,10 @@ final class CurrentUserResource extends JsonResource
     {
         return [
             ...UserResource::make($this->resource)->toArray($request),
+            'pasteis_mode' => $this->pasteis_mode,
+            'pasteis_remaining' => $this->pasteisRemaining(),
+            'pasteis_resets_at' => today()->addDay()->toIso8601ZuluString(),
+            'pasteis_received' => $this->pasteis_received,
             'preferred_lane' => $this->preferredLane(),
             'automatic_lane' => $this->automaticLane(),
             'sponsors_url' => $this->has_sponsors_listing ? "https://github.com/sponsors/{$this->username}" : null,

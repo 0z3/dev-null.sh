@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\BookmarkController;
 use App\Http\Controllers\Api\CommitController as ApiCommitController;
+use App\Http\Controllers\Api\CommitPastelController;
 use App\Http\Controllers\Api\CommitReplyController;
 use App\Http\Controllers\Api\CommitStarController;
 use App\Http\Controllers\Api\CurrentUserController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Api\UserCommitController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserFollowController;
 use App\Http\Controllers\Api\UserLaneController;
+use App\Http\Controllers\Api\UserPasteisModeController;
 use App\Http\Controllers\Api\UserProfileController;
 use App\Http\Controllers\Cli\CommitController;
 use App\Http\Controllers\Cli\KeyLookupController;
@@ -53,6 +55,9 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
     Route::middleware(AuthenticateSignedRequest::class)->group(function (): void {
         Route::get('me', [CurrentUserController::class, 'show'])->name('api-current-user.show');
         Route::delete('me', [CurrentUserController::class, 'destroy'])->name('api-current-user.destroy');
+      
+        // Pastéis...
+        Route::put('me/pasteis-mode', [UserPasteisModeController::class, 'update'])->name('api-user-pasteis-mode.update');
 
         // User Profile: mirrored from GitHub again, as Sync from GitHub does on the web...
         Route::put('me/github', [UserProfileController::class, 'update'])
@@ -75,6 +80,11 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
         Route::get('commits/{commit}/replies', [CommitReplyController::class, 'index'])
             ->withTrashed()
             ->name('api-commit-reply.index');
+
+        // Commit Pastel...
+        Route::post('commits/{commit}/pasteis', [CommitPastelController::class, 'store'])
+            ->middleware('throttle:60,1')
+            ->name('api-commit-pastel.store');
 
         // Private saved commits...
         Route::get('saved', [BookmarkController::class, 'index'])->name('api-bookmark.index');

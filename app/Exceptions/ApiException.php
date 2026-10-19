@@ -44,6 +44,14 @@ final class ApiException extends HttpException
     }
 
     /**
+     * The user gave every pastel they get today. The web's own words, which say when they come back.
+     */
+    public static function pasteisExhausted(): self
+    {
+        return new self(ApiErrorCode::PasteisExhausted, __('you ran out of pastéis. wait until tomorrow.'));
+    }
+
+    /**
      * The profile could not be mirrored from GitHub again, as the web says it.
      */
     public static function gitHubSyncFailed(): self
