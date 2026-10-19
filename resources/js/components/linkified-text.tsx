@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import CommitController from '@/actions/App/Http/Controllers/CommitController';
 import AppLogoIcon from '@/components/app-logo-icon';
 import AppWordmark from '@/components/app-wordmark';
+import { GitHubIcon } from '@/components/github-icon';
 import { UserPreview } from '@/components/user-preview';
 import { typedProse } from '@/lib/code';
 import { shortenUrl } from '@/lib/urls';
@@ -42,6 +43,18 @@ const mentionPattern =
 // A link to a commit on dev/null itself, nothing after its id, so it can show as the author and the commit's hash.
 const commitLinkPattern =
     /^https?:\/\/(?:www\.)?dev-null\.sh\/@([A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38})\/commits\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+// A link to a GitHub repository, nothing after its name, so it can show as GitHub writes it.
+const gitHubLinkPattern =
+    /^https?:\/\/(?:www\.)?github\.com\/([A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38})\/([A-Za-z0-9._-]{1,100})$/i;
+// First path segments that are GitHub's own pages rather than an owner, like "github.com/features/actions".
+const gitHubReservedPaths = new Set(
+    [
+        'about apps codespaces collections customer-stories enterprise events explore features issues login marketplace',
+        'new notifications orgs organizations pricing pulls search security settings site sponsors topics trending users',
+    ]
+        .join(' ')
+        .split(' '),
+);
 const schemePattern = /^https?:\/\//i;
 const maxUrlLength = 2048;
 const brackets = [
@@ -180,6 +193,72 @@ function CommitLink({
     );
 }
 
+function gitHubLinkTo(
+    href: string,
+): { owner: string; repository: string } | null {
+    const match = gitHubLinkPattern.exec(href);
+
+    if (!match || gitHubReservedPaths.has(match[1].toLowerCase())) {
+        return null;
+    }
+
+    return { owner: match[1], repository: match[2] };
+}
+
+// Like a dev/null commit link, the whole URL stays in the text, so copying it keeps the link.
+function GitHubLink({
+    url,
+    href,
+    owner,
+    repository,
+    isStatic,
+}: {
+    url: string;
+    href: string;
+    owner: string;
+    repository: string;
+    isStatic: boolean;
+}) {
+    const label = (
+        <>
+            <span className="text-[0px]">{url}</span>
+            <span
+                aria-hidden="true"
+                className="font-mono text-[0.92em] wrap-anywhere select-none"
+            >
+                {/* The mark never wraps onto a line of its own. */}
+                <span className="whitespace-nowrap text-muted-foreground">
+                    <GitHubIcon className="mr-[0.2em] inline-block size-[1.15em] align-[-0.25em] text-foreground" />
+                    {owner.charAt(0)}
+                </span>
+                <span className="text-muted-foreground">{owner.slice(1)}/</span>
+                {repository}
+            </span>
+        </>
+    );
+
+    if (isStatic) {
+        return (
+            <span title={href} className="text-primary">
+                {label}
+            </span>
+        );
+    }
+
+    return (
+        <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer nofollow ugc"
+            title={href}
+            aria-label={`${owner}/${repository} on GitHub`}
+            className="text-primary hover:underline"
+        >
+            {label}
+        </a>
+    );
+}
+
 function withPasteis(text: string, pasteisMode: boolean): ReactNode {
     if (!pasteisMode) {
         return text;
@@ -295,6 +374,7 @@ export function LinkifiedText({
         }
 
         const commitLink = commitLinkPattern.exec(linkText);
+        const gitHubLink = gitHubLinkTo(href);
 
         parts.push(
             ...withMentions(
@@ -310,6 +390,15 @@ export function LinkifiedText({
                     url={linkText}
                     username={commitLink[1]}
                     commit={commitLink[2].toLowerCase()}
+                    isStatic={isStatic}
+                />
+            ) : gitHubLink ? (
+                <GitHubLink
+                    key={match.index}
+                    url={linkText}
+                    href={href}
+                    owner={gitHubLink.owner}
+                    repository={gitHubLink.repository}
                     isStatic={isStatic}
                 />
             ) : isStatic ? (

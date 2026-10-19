@@ -209,3 +209,98 @@ for (const link of [
         assert.ok(markup.includes(`href="${link}"`));
     });
 }
+
+const repositoryUrl = 'https://github.com/laravel/framework';
+
+test('shows a GitHub repository link as its owner and name', () => {
+    const text = `built on ${repositoryUrl}.`;
+    const markup = renderToStaticMarkup(
+        <LinkifiedText text={text} mentions={null} />,
+    );
+
+    assert.ok(markup.includes(`href="${repositoryUrl}"`));
+    assert.ok(markup.includes('target="_blank"'));
+    assert.ok(markup.includes('rel="noopener noreferrer nofollow ugc"'));
+    assert.ok(markup.includes(`title="${repositoryUrl}"`));
+    assert.ok(markup.includes('aria-label="laravel/framework on GitHub"'));
+    assert.equal(
+        markup.replace(/<[^>]+>/g, ''),
+        `built on ${repositoryUrl}laravel/framework.`,
+    );
+    assert.equal(
+        markup
+            .replace(/<span aria-hidden="true"[^>]*>.*?<\/span><\/a>/g, '')
+            .replace(/<[^>]+>/g, ''),
+        text,
+    );
+});
+
+test('shows a GitHub repository link as its owner and name without a link when static', () => {
+    const text = `built on ${repositoryUrl}.`;
+    const markup = renderToStaticMarkup(
+        <LinkifiedText text={text} mentions={null} isStatic />,
+    );
+
+    assert.ok(!markup.includes('<a'));
+    assert.ok(markup.includes(`title="${repositoryUrl}"`));
+    assert.equal(
+        markup.replace(/<[^>]+>/g, ''),
+        `built on ${repositoryUrl}laravel/framework.`,
+    );
+});
+
+for (const [link, href] of [
+    ['github.com/laravel/framework', 'https://github.com/laravel/framework'],
+    [
+        'https://www.github.com/laravel/framework',
+        'https://www.github.com/laravel/framework',
+    ],
+    [
+        'HTTPS://GitHub.com/laravel/framework',
+        'HTTPS://GitHub.com/laravel/framework',
+    ],
+    [
+        'http://github.com/nunomaduro/dev-null.sh',
+        'http://github.com/nunomaduro/dev-null.sh',
+    ],
+]) {
+    test(`shows GitHub repository links however they are written: ${link}`, () => {
+        const markup = renderToStaticMarkup(
+            <LinkifiedText text={link} mentions={null} />,
+        );
+
+        assert.ok(markup.includes(`href="${href}"`));
+        assert.ok(markup.includes(' on GitHub"'));
+        assert.equal(
+            markup
+                .replace(/<span aria-hidden="true"[^>]*>.*?<\/span><\/a>/g, '')
+                .replace(/<[^>]+>/g, ''),
+            link,
+        );
+    });
+}
+
+for (const link of [
+    'https://github.com/laravel',
+    'https://github.com/laravel/framework/',
+    'https://github.com/laravel/framework/blob/12.x/README.md',
+    'https://github.com/laravel/framework/tree/12.x',
+    'https://github.com/laravel/framework/releases',
+    'https://github.com/laravel/framework/commit/4fa008f',
+    'https://github.com/laravel/framework?tab=readme',
+    'https://github.com/laravel/framework#readme',
+    'https://github.com/features/actions',
+    'https://github.com/orgs/laravel',
+    'https://github.com/settings/profile',
+    'https://gist.github.com/laravel/framework',
+    'https://notgithub.com/laravel/framework',
+]) {
+    test(`keeps other GitHub links as URLs: ${link}`, () => {
+        const markup = renderToStaticMarkup(
+            <LinkifiedText text={link} mentions={null} />,
+        );
+
+        assert.ok(!markup.includes('aria-label'));
+        assert.ok(markup.includes(`href="${link}"`));
+    });
+}
