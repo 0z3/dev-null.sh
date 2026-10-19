@@ -280,6 +280,52 @@ for (const [link, href] of [
     });
 }
 
+for (const [kind, path] of [
+    ['issue', 'issues'],
+    ['pull request', 'pull'],
+]) {
+    const url = `https://github.com/laravel/framework/${path}/42`;
+
+    test(`shows a GitHub ${kind} link as its repository and number`, () => {
+        const text = `fixed by ${url}.`;
+        const markup = renderToStaticMarkup(
+            <LinkifiedText text={text} mentions={null} />,
+        );
+
+        assert.ok(markup.includes(`href="${url}"`));
+        assert.ok(markup.includes(`title="${url}"`));
+        assert.ok(
+            markup.includes(
+                `aria-label="laravel/framework ${kind} #42 on GitHub"`,
+            ),
+        );
+        assert.equal(
+            markup.replace(/<[^>]+>/g, ''),
+            `fixed by ${url}laravel/framework#42.`,
+        );
+        assert.equal(
+            markup
+                .replace(/<span aria-hidden="true"[^>]*>.*?<\/span><\/a>/g, '')
+                .replace(/<[^>]+>/g, ''),
+            text,
+        );
+    });
+
+    test(`shows a GitHub ${kind} link as its repository and number without a link when static`, () => {
+        const text = `fixed by ${url}.`;
+        const markup = renderToStaticMarkup(
+            <LinkifiedText text={text} mentions={null} isStatic />,
+        );
+
+        assert.ok(!markup.includes('<a'));
+        assert.ok(markup.includes(`title="${url}"`));
+        assert.equal(
+            markup.replace(/<[^>]+>/g, ''),
+            `fixed by ${url}laravel/framework#42.`,
+        );
+    });
+}
+
 for (const link of [
     'https://github.com/laravel',
     'https://github.com/laravel/framework/',
@@ -287,6 +333,14 @@ for (const link of [
     'https://github.com/laravel/framework/tree/12.x',
     'https://github.com/laravel/framework/releases',
     'https://github.com/laravel/framework/commit/4fa008f',
+    'https://github.com/laravel/framework/pull/42/files',
+    'https://github.com/laravel/framework/pull/42/',
+    'https://github.com/laravel/framework/issues/0',
+    'https://github.com/laravel/framework/issues/042',
+    'https://github.com/laravel/framework/issues',
+    'https://github.com/laravel/framework/issues/42#issuecomment-1',
+    'https://github.com/laravel/framework/issues/42?page=2',
+    'https://github.com/laravel/framework/discussions/42',
     'https://github.com/laravel/framework?tab=readme',
     'https://github.com/laravel/framework#readme',
     'https://github.com/features/actions',

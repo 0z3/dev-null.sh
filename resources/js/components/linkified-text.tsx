@@ -43,9 +43,10 @@ const mentionPattern =
 // A link to a commit on dev/null itself, nothing after its id, so it can show as the author and the commit's hash.
 const commitLinkPattern =
     /^https?:\/\/(?:www\.)?dev-null\.sh\/@([A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38})\/commits\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
-// A link to a GitHub repository, nothing after its name, so it can show as GitHub writes it.
+// A link to a GitHub repository, or to one of its issues or pull requests, nothing after its name or number, so it can
+// show as GitHub writes it.
 const gitHubLinkPattern =
-    /^https?:\/\/(?:www\.)?github\.com\/([A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38})\/([A-Za-z0-9._-]{1,100})$/i;
+    /^https?:\/\/(?:www\.)?github\.com\/([A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38})\/([A-Za-z0-9._-]{1,100})(?:\/(issues|pull)\/([1-9][0-9]{0,9}))?$/i;
 // First path segments that are GitHub's own pages rather than an owner, like "github.com/features/actions".
 const gitHubReservedPaths = new Set(
     [
@@ -193,16 +194,32 @@ function CommitLink({
     );
 }
 
-function gitHubLinkTo(
-    href: string,
-): { owner: string; repository: string } | null {
+type GitHubItem = { kind: 'issue' | 'pull request'; number: string };
+
+function gitHubLinkTo(href: string): {
+    owner: string;
+    repository: string;
+    item: GitHubItem | null;
+} | null {
     const match = gitHubLinkPattern.exec(href);
 
     if (!match || gitHubReservedPaths.has(match[1].toLowerCase())) {
         return null;
     }
 
-    return { owner: match[1], repository: match[2] };
+    return {
+        owner: match[1],
+        repository: match[2],
+        item: match[3]
+            ? {
+                  kind:
+                      match[3].toLowerCase() === 'pull'
+                          ? 'pull request'
+                          : 'issue',
+                  number: match[4],
+              }
+            : null,
+    };
 }
 
 // Like a dev/null commit link, the whole URL stays in the text, so copying it keeps the link.
@@ -211,12 +228,14 @@ function GitHubLink({
     href,
     owner,
     repository,
+    item,
     isStatic,
 }: {
     url: string;
     href: string;
     owner: string;
     repository: string;
+    item: GitHubItem | null;
     isStatic: boolean;
 }) {
     const label = (
@@ -233,6 +252,7 @@ function GitHubLink({
                 </span>
                 <span className="text-muted-foreground">{owner.slice(1)}/</span>
                 {repository}
+                {item && `#${item.number}`}
             </span>
         </>
     );
@@ -251,7 +271,7 @@ function GitHubLink({
             target="_blank"
             rel="noopener noreferrer nofollow ugc"
             title={href}
-            aria-label={`${owner}/${repository} on GitHub`}
+            aria-label={`${owner}/${repository}${item ? ` ${item.kind} #${item.number}` : ''} on GitHub`}
             className="text-primary hover:underline"
         >
             {label}
@@ -399,6 +419,7 @@ export function LinkifiedText({
                     href={href}
                     owner={gitHubLink.owner}
                     repository={gitHubLink.repository}
+                    item={gitHubLink.item}
                     isStatic={isStatic}
                 />
             ) : isStatic ? (
