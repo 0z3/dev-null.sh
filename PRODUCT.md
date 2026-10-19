@@ -24,7 +24,7 @@ Developers who left X or Bluesky, or are thinking about it, and want a feed with
 
 - Surfaces: the web app (also installable as a PWA), the mobile app through a signed JSON API, the terminal script and GitHub Action, a public read-only API, Atom feeds, and an activity graph SVG for GitHub READMEs.
 - Guests can read the Latest and Trending logs, profiles, approved commits and their threads, and search. Everything that writes or is personal (Following log, notifications, Saved, Remotes, Settings) needs sign-in.
-- Site admins (`ADMINS`) moderate (`/moderation`) and run the site (`/operations`), including the product metrics defined in [PRODUCT_METRICS.md](PRODUCT_METRICS.md).
+- Site admins (`ADMINS`) moderate (`/moderation`) and run the site (`/operations`).
 - Exact behavior, limits, and edge cases for every feature live in [KNOWLEDGE_BASE.md](KNOWLEDGE_BASE.md) and in the code; this file only records what must stay true.
 
 ## Capabilities and Constraints

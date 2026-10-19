@@ -16,11 +16,13 @@ Status: **implemented** metrics are on the Metrics tab. **Not yet** metrics are 
 
 ## What is stored
 
-| Data | Where | Why |
-|---|---|---|
-| Two anonymous Fathom events, `guest-visit` and `signup` | Fathom | The conversion rate. No user id is sent. |
-| The last day a person was seen (a date, no time) | `users.last_seen_at` | Retention and active users. Written at most once a day, without touching `updated_at`. Included in the person's data export. |
-| The number of people active each day | `active_user_counts` (one row per day, no user ids) | The history of daily active users, since `last_seen_at` only keeps the latest day. Incremented the first time each person is seen in a day, so the count is exact. |
+Each answers the three questions of the [data guidelines](.ai/guidelines/data.blade.php):
+
+| Data | Where | Why the feature needs it | Who sees it | When it is deleted |
+|---|---|---|---|---|
+| The last day a person was seen (a date, no time) | `users.last_seen_at`, hidden | Retention and active users can't be derived from anything else: reading alone leaves no trace. Written at most once a day, without touching `updated_at`. | Admins, only as aggregates on the Metrics tab; the person in their export | With the account |
+| The number of people seen each day | `active_user_counts` (`seen_at`, `count`), no user ids | The daily active users history: `last_seen_at` only keeps each person's latest day, so past days can't be recomputed. Incremented the first time each person is seen in a day, so the count is exact. | Admins, on the Metrics tab | Never: it is an anonymous count |
+| Two anonymous events, `guest-visit` and `signup` | Fathom | The conversion rate, counted on both sides by the same tool. No user id is sent. | Admins, through Fathom | Per Fathom's retention |
 
 **Seen** means signed in and opening a page or doing something (starring, replying, following) on the web or the installed app, or using the API from the mobile app or the terminal. Posts automated with the GitHub Action count too: someone who publishes, even automatically, is active. What a page reads on its own (polling for notifications, partial reloads, prefetches, JSON reads) doesn't count, or a tab left open would keep its owner active forever.
 
