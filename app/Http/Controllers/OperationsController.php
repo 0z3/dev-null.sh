@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ShowOperationsRequest;
 use App\Models\Commit;
+use App\Queries\ActivityBreakdownsQuery;
 use App\Queries\ActivityStreaksQuery;
 use App\Queries\ConnectivityQuery;
 use App\Queries\FailedJobsQuery;
@@ -33,6 +34,7 @@ final readonly class OperationsController
         RecentVolumeQuery $volume,
         SiteActivityQuery $activity,
         ActivityStreaksQuery $streaks,
+        ActivityBreakdownsQuery $breakdowns,
         GitHubRateLimitQuery $githubRateLimit,
         FathomTrafficQuery $traffic,
         Features $features,
@@ -46,6 +48,7 @@ final readonly class OperationsController
             'volume' => $volume->get(...),
             'activity' => fn (): array => $activity->get($request->activityMetric(), $request->activityScale()),
             'streaks' => fn (): array => $streaks->get($request->activityMetric()->rows()),
+            'breakdowns' => fn (): array => $breakdowns->get($request->activityScale()),
             'features' => $features->all(...),
             ...$githubRateLimit->isConfigured() ? [
                 'githubRateLimit' => Inertia::defer($githubRateLimit->get(...)),

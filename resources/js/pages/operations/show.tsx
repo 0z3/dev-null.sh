@@ -20,7 +20,12 @@ import FailedJobController from '@/actions/App/Http/Controllers/FailedJobControl
 import FailedJobRetryController from '@/actions/App/Http/Controllers/FailedJobRetryController';
 import FeatureController from '@/actions/App/Http/Controllers/FeatureController';
 import ModerationController from '@/actions/App/Http/Controllers/ModerationController';
-import { ActivityCells, activitySummary } from '@/components/activity-graph';
+import UserController from '@/actions/App/Http/Controllers/UserController';
+import {
+    ActivityCells,
+    activitySummary,
+    activityWindows,
+} from '@/components/activity-graph';
 import type { ActivityNoun } from '@/components/activity-graph';
 import { ActivityStreaks } from '@/components/activity-streaks';
 import { EmptyFeed } from '@/components/commit-feed';
@@ -30,8 +35,10 @@ import { useNow } from '@/hooks/use-now';
 import AppLayout from '@/layouts/app-layout';
 import { cn, formatFullDateTime, formatRelativeTime } from '@/lib/utils';
 import type {
+    ActivityBreakdowns,
     ActivityMetric,
     ActivityScale,
+    BreakdownRow,
     Connectivity,
     FailedJob,
     FailedJobs,
@@ -60,6 +67,7 @@ const PAGE_PROPS = [
     'volume',
     'activity',
     'streaks',
+    'breakdowns',
     'features',
     'githubRateLimit',
     'traffic',
@@ -352,7 +360,7 @@ function ActivityPicker({ activity }: { activity: SiteActivity }) {
                         onClick={() =>
                             router.reload({
                                 data: { scale: preset.scale },
-                                only: ['activity'],
+                                only: ['activity', 'breakdowns'],
                             })
                         }
                     >
@@ -420,16 +428,20 @@ function TrafficRangePicker({ range }: { range: TrafficRange }) {
 
 function Breakdown({
     title,
+    unit,
     empty,
     rows,
     formatName = (name) => name,
+    href,
 }: {
     title: string;
+    unit: string;
     empty: string;
-    rows: TrafficRow[];
+    rows: BreakdownRow[];
     formatName?: (name: string) => string;
+    href?: (name: string) => string;
 }) {
-    const top = rows[0]?.visitors ?? 0;
+    const top = Math.max(0, ...rows.map((row) => row.count));
 
     return (
         <div className="rounded-lg border px-4">
@@ -446,7 +458,7 @@ function Breakdown({
                             scope="col"
                             className="w-20 py-2.5 text-right font-normal"
                         >
-                            visitors
+                            {unit}
                         </th>
                     </tr>
                 </thead>
@@ -475,7 +487,7 @@ function Breakdown({
                                         aria-hidden
                                         className="absolute inset-y-1.5 left-0 -ml-2 rounded bg-muted"
                                         style={{
-                                            width: `calc(${top > 0 ? (row.visitors / top) * 100 : 0}% + 0.5rem)`,
+                                            width: `calc(${top > 0 ? (row.count / top) * 100 : 0}% + 0.5rem)`,
                                         }}
                                     />
                                     <span
@@ -486,11 +498,20 @@ function Breakdown({
                                         )}
                                         title={name}
                                     >
-                                        {name}
+                                        {href && row.name !== '' ? (
+                                            <Link
+                                                href={href(row.name)}
+                                                className="underline-offset-4 hover:underline"
+                                            >
+                                                {name}
+                                            </Link>
+                                        ) : (
+                                            name
+                                        )}
                                     </span>
                                 </th>
                                 <td className="py-2.5 text-right font-mono text-[13px] font-medium tabular-nums">
-                                    {formatCount(row.visitors)}
+                                    {formatCount(row.count)}
                                 </td>
                             </tr>
                         );
@@ -542,8 +563,14 @@ function TrafficValue({ traffic }: { traffic: Traffic | null | undefined }) {
                     <Breakdown
                         key={breakdown.key}
                         title={breakdown.title}
+                        unit="visitors"
                         empty={breakdown.empty}
-                        rows={traffic.breakdowns[breakdown.key]}
+                        rows={traffic.breakdowns[breakdown.key].map(
+                            (row: TrafficRow) => ({
+                                name: row.name,
+                                count: row.visitors,
+                            }),
+                        )}
                         formatName={
                             breakdown.key === 'countries'
                                 ? countryName
@@ -838,6 +865,7 @@ export default function Show({
     volume,
     activity,
     streaks,
+    breakdowns,
     features,
     githubRateLimit,
     traffic,
@@ -851,6 +879,7 @@ export default function Show({
     volume: Volume;
     activity: SiteActivity;
     streaks: Streaks;
+    breakdowns: ActivityBreakdowns;
     features: Feature[];
     githubRateLimit?: GitHubRateLimit | null;
     traffic?: Traffic | null;
@@ -891,6 +920,11 @@ export default function Show({
         githubRateLimit !== undefined || isDeferred('githubRateLimit');
 
     const tracksTraffic = traffic !== undefined || isDeferred('traffic');
+
+    const posted = breakdowns.statuses.reduce(
+        (sum, status) => sum + status.count,
+        0,
+    );
 
     const volumeRows = [
         { label: 'signups', counts: volume.signups },
@@ -1165,6 +1199,28 @@ export default function Show({
                 streaks={streaks}
                 color="var(--muted-foreground)"
             />
+
+            <Section
+                title="Breakdown"
+                meta={`${formatCount(posted)} ${posted === 1 ? 'commit or reply' : 'commits and replies'} ${activityWindows[activity.scale]}`}
+            >
+                <div className="grid gap-3 sm:grid-cols-2">
+                    <Breakdown
+                        title="status"
+                        unit="commits"
+                        empty="unknown"
+                        rows={breakdowns.statuses}
+                    />
+                    <Breakdown
+                        title="authors"
+                        unit="commits"
+                        empty="unknown"
+                        rows={breakdowns.authors}
+                        formatName={(name) => `@${name}`}
+                        href={(name) => UserController.show.url(name)}
+                    />
+                </div>
+            </Section>
 
             {tracksTraffic && (
                 <Section

@@ -4,6 +4,13 @@ export type ActivityMetric = 'commits' | 'replies' | 'signups';
 
 export type SiteActivity = Activity & { metric: ActivityMetric };
 
+export type BreakdownRow = {
+    name: string;
+    count: number;
+};
+
+export type ActivityBreakdowns = Record<'statuses' | 'authors', BreakdownRow[]>;
+
 export type QueueBacklog = {
     queue: string;
     size: number;

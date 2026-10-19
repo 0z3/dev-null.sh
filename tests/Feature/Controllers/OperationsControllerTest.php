@@ -42,6 +42,12 @@ it('shows the operational health of the app to admins', function (): void {
             ->has('activity.buckets', 8)
             ->where('activity.buckets.7.count', 3)
             ->where('streaks', ['longest' => 1, 'current' => 1])
+            ->where('breakdowns.statuses', [
+                ['name' => 'approved', 'count' => 2],
+                ['name' => 'pending', 'count' => 2],
+                ['name' => 'rejected', 'count' => 0],
+            ])
+            ->has('breakdowns.authors', 4)
             ->where('features', [['name' => 'translations', 'enabled' => true]])
             ->missing('githubRateLimit')
             ->missing('traffic'));
