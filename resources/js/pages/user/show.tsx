@@ -255,7 +255,9 @@ export default function Show({
                     {user.company && (
                         <li className="flex items-center gap-1.5">
                             <Building2 className="size-4" />
-                            {user.company}
+                            <span>
+                                <BioText bio={user.company} />
+                            </span>
                         </li>
                     )}
                     {user.location && (

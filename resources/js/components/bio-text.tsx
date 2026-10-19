@@ -37,7 +37,7 @@ function GitHubMention({ username }: { username: string }) {
 }
 
 /**
- * A bio synced from GitHub, with each tagged user or organization as a pill that opens it on GitHub.
+ * A bio or company synced from GitHub, with each tagged user or organization as a pill that opens it on GitHub.
  */
 export function BioText({ bio }: { bio: string }) {
     const parts: ReactNode[] = [];
