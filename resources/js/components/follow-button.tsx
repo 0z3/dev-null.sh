@@ -170,7 +170,7 @@ export function FollowButton({
                 onBefore={() => !isPending}
                 onStart={() => setIsPending(true)}
                 onFinish={() => setIsPending(false)}
-                aria-disabled={isPending}
+                disabled={isPending}
                 onHttpException={(response) =>
                     onFollowHttpException(user, response)
                 }
