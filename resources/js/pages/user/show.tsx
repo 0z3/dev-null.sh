@@ -30,7 +30,7 @@ import { UserSafetyMenu } from '@/components/user-safety-menu';
 import { refreshSharedState, useSharedState } from '@/hooks/use-shared-state';
 import AppLayout from '@/layouts/app-layout';
 import { commitStateKey } from '@/lib/commit-state';
-import { laneColor, laneTint } from '@/lib/utils';
+import { dateLocale, laneColor, laneTint } from '@/lib/utils';
 import type {
     Achievements,
     Activity,
@@ -274,7 +274,7 @@ export default function Show({
                         <CalendarDays className="size-4" />
                         Joined{' '}
                         {new Date(user.created_at).toLocaleDateString(
-                            undefined,
+                            dateLocale,
                             { month: 'long', year: 'numeric' },
                         )}
                     </li>

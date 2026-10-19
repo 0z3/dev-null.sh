@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useNow } from '@/hooks/use-now';
 import AppLayout from '@/layouts/app-layout';
 import { emojify } from '@/lib/emoji';
+import { dateLocale } from '@/lib/utils';
 import type { BodySegment } from '@/types';
 
 type ScheduledCommit = {
@@ -108,7 +109,7 @@ export default function Index({
                                         >
                                             {new Date(
                                                 scheduled.scheduled_at,
-                                            ).toLocaleString(undefined, {
+                                            ).toLocaleString(dateLocale, {
                                                 dateStyle: 'medium',
                                                 timeStyle: 'short',
                                             })}
@@ -119,7 +120,7 @@ export default function Index({
                                             variant="outline"
                                             size="sm"
                                             disabled={canceling !== null}
-                                            aria-label={`Cancel the commit scheduled for ${new Date(scheduled.scheduled_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`}
+                                            aria-label={`Cancel the commit scheduled for ${new Date(scheduled.scheduled_at).toLocaleString(dateLocale, { dateStyle: 'medium', timeStyle: 'short' })}`}
                                             onClick={() => {
                                                 setCanceling(scheduled.id);
                                                 router.delete(

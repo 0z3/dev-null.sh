@@ -35,6 +35,7 @@ import AppLayout from '@/layouts/app-layout';
 import {
     cn,
     formatDayLabel,
+    formatFullDateTime,
     formatRelativeTime,
     laneColor,
     localDayKey,
@@ -735,7 +736,7 @@ function NotificationContent({
     const time = (
         <time
             dateTime={notification.created_at}
-            title={new Date(notification.created_at).toLocaleString()}
+            title={formatFullDateTime(notification.created_at)}
             className="ml-auto min-w-[3ch] shrink-0 text-right font-mono text-[13px] text-muted-foreground"
         >
             {formatRelativeTime(notification.created_at, now)}
