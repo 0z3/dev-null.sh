@@ -185,7 +185,14 @@ function CommitComposerBody({
                                 preview.handleShortcut(event) ||
                                 onKeyDown(event)
                             }
-                            onFocus={isRestored ? moveCaretToEnd : undefined}
+                            onFocus={(event) => {
+                                issue.focus();
+
+                                if (isRestored) {
+                                    moveCaretToEnd(event);
+                                }
+                            }}
+                            onBlur={issue.blur}
                             maxLength={maxBodyLength}
                             placeholder={
                                 issue.command?.placeholder ??
