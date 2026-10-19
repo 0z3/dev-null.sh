@@ -6,15 +6,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ShowOperationsRequest;
 use App\Models\Commit;
-use App\Queries\ActivityBreakdownsQuery;
 use App\Queries\ConnectivityQuery;
 use App\Queries\FailedJobsQuery;
 use App\Queries\FathomTrafficQuery;
 use App\Queries\GitHubRateLimitQuery;
 use App\Queries\LinkPreviewHealthQuery;
 use App\Queries\QueueBacklogQuery;
-use App\Queries\RecentVolumeQuery;
-use App\Queries\SiteActivityQuery;
 use App\Services\Features;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,7 +19,7 @@ use Inertia\Response;
 final readonly class OperationsController
 {
     /**
-     * The GitHub rate limit and Fathom traffic are deferred, so a slow third party never holds up the page.
+     * The GitHub rate limit is deferred, so a slow third party never holds up the page.
      */
     public function show(
         ShowOperationsRequest $request,
@@ -30,9 +27,6 @@ final readonly class OperationsController
         FailedJobsQuery $failedJobs,
         ConnectivityQuery $connectivity,
         LinkPreviewHealthQuery $linkPreviews,
-        RecentVolumeQuery $volume,
-        SiteActivityQuery $activity,
-        ActivityBreakdownsQuery $breakdowns,
         GitHubRateLimitQuery $githubRateLimit,
         FathomTrafficQuery $traffic,
         Features $features,
@@ -43,16 +37,10 @@ final readonly class OperationsController
             'connectivity' => $connectivity->get(...),
             'linkPreviews' => $linkPreviews->get(...),
             'pendingModerationCount' => fn (): int => Commit::query()->pending()->count(),
-            'volume' => $volume->get(...),
-            'activity' => fn (): array => $activity->get($request->activityMetric(), $request->activityScale()),
-            'breakdowns' => fn (): array => $breakdowns->get($request->activityScale()),
             'features' => $features->all(...),
+            'hasTraffic' => $traffic->isConfigured(),
             ...$githubRateLimit->isConfigured() ? [
                 'githubRateLimit' => Inertia::defer($githubRateLimit->get(...)),
-            ] : [],
-            ...$traffic->isConfigured() ? [
-                'trafficRange' => ['from' => $request->trafficFrom()->toDateString(), 'to' => $request->trafficTo()->toDateString()],
-                'traffic' => Inertia::defer(fn (): ?array => $traffic->get($request->trafficFrom(), $request->trafficTo())),
             ] : [],
         ]);
     }

@@ -1,6 +1,9 @@
 import { router } from '@inertiajs/react';
 import { useEffect } from 'react';
 import LogController from '@/actions/App/Http/Controllers/LogController';
+import OperationsController from '@/actions/App/Http/Controllers/OperationsController';
+import SiteActivityController from '@/actions/App/Http/Controllers/SiteActivityController';
+import TrafficController from '@/actions/App/Http/Controllers/TrafficController';
 import { clearTabSlide } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/user-profile';
@@ -12,6 +15,11 @@ const tabGroups = [
         LogController.show('trending').url,
     ],
     [editProfile().url, editAppearance().url],
+    [
+        OperationsController.show().url,
+        SiteActivityController.show().url,
+        TrafficController.show().url,
+    ],
 ];
 
 /**
