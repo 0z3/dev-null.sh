@@ -213,7 +213,7 @@ export default function Show({
                 </div>
 
                 {user.bio && (
-                    <p className="mt-3 max-w-prose text-[15px] leading-relaxed break-words whitespace-pre-wrap">
+                    <p className="mt-3 max-w-prose text-[15px] leading-relaxed wrap-break-word whitespace-pre-wrap">
                         {user.bio}
                     </p>
                 )}

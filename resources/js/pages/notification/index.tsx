@@ -797,7 +797,7 @@ function NotificationContent({
                                 {actor.name}
                             </span>
                             <span
-                                className="hidden shrink-[4] truncate font-mono text-[13px] text-muted-foreground sm:inline"
+                                className="hidden shrink-4 truncate font-mono text-[13px] text-muted-foreground sm:inline"
                                 title={`@${actor.username}`}
                             >
                                 @{actor.username}

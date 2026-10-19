@@ -83,7 +83,7 @@ export default function Reports({
                                         {reasons[report.reason]}
                                     </p>
                                     {report.details && (
-                                        <p className="text-sm leading-relaxed [overflow-wrap:anywhere] whitespace-pre-wrap">
+                                        <p className="text-sm leading-relaxed wrap-anywhere whitespace-pre-wrap">
                                             {report.details}
                                         </p>
                                     )}
