@@ -7,7 +7,7 @@ import {
     Trash2,
 } from 'lucide-react';
 import type { CSSProperties, FormEvent, KeyboardEvent, ReactNode } from 'react';
-import { useEffect, useEffectEvent, useId, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import CommitController from '@/actions/App/Http/Controllers/CommitController';
 import CommitLinkPreviewController from '@/actions/App/Http/Controllers/CommitLinkPreviewController';
@@ -70,7 +70,6 @@ import {
     formatRelativeTime,
     isDeleted,
     laneOf,
-    laneStrokeHold,
     laneStrokeStyle,
 } from '@/lib/utils';
 import { show } from '@/routes/user';
@@ -590,59 +589,39 @@ const replyLink =
 
 function ReplyLinks({
     previousLane,
-    parentLane,
     lane,
-    nextLane,
+    hasNext,
 }: {
     previousLane: string | null;
-    parentLane: string;
     lane: string;
-    nextLane: string | null;
+    hasNext: boolean;
 }) {
     return (
         <span aria-hidden>
             {previousLane === null ? (
-                <ThreadElbow from={parentLane} to={lane} />
+                <ThreadElbow />
             ) : (
                 <span
                     className={cn(replyLink, 'top-0 h-1.5')}
-                    style={laneStrokeStyle(lane)}
+                    style={laneStrokeStyle(previousLane)}
                     data-test="reply-link"
                 />
             )}
-            {nextLane !== null && (
-                <ReplyTail
-                    from={lane}
-                    to={nextLane}
-                    className="top-[38px] bottom-0 sm:top-[42px]"
+            {hasNext && (
+                <span
+                    className={cn(
+                        replyLink,
+                        'top-[38px] bottom-0 sm:top-[42px]',
+                    )}
+                    style={laneStrokeStyle(lane)}
+                    data-test="reply-tail"
                 />
             )}
         </span>
     );
 }
 
-function ReplyTail({
-    from,
-    to,
-    className,
-}: {
-    from: string;
-    to: string;
-    className?: string;
-}) {
-    return (
-        <span
-            className={cn(replyLink, className)}
-            style={laneStrokeStyle(from, to)}
-            data-test="reply-tail"
-        />
-    );
-}
-
-function ThreadElbow({ from, to }: { from: string; to: string }) {
-    const gradientId = `elbow-${useId().replaceAll(':', '')}`;
-    const hold = `${laneStrokeHold * 100}%`;
-
+function ThreadElbow() {
     return (
         <svg
             aria-hidden
@@ -652,24 +631,10 @@ function ThreadElbow({ from, to }: { from: string; to: string }) {
             fill="none"
             data-test="thread-elbow"
         >
-            <defs>
-                <linearGradient
-                    id={gradientId}
-                    gradientUnits="objectBoundingBox"
-                    x1="0"
-                    y1="0"
-                    x2="1"
-                    y2="1"
-                >
-                    <stop offset="0%" stopColor={from} />
-                    <stop offset={hold} stopColor={from} />
-                    <stop offset="100%" stopColor={to} />
-                </linearGradient>
-            </defs>
             {/* Quarter-circle corner matching rounded-bl-xl. */}
             <path
                 d="M 0 0 L 0 12 Q 0 23.5 12 23.5 L 32 23.5"
-                stroke={from === to ? from : `url(#${gradientId})`}
+                stroke="var(--lane)"
                 strokeWidth="1"
                 strokeDasharray="2 2"
                 vectorEffect="non-scaling-stroke"
@@ -721,14 +686,10 @@ export function ThreadReplies({
                                                 ? null
                                                 : laneOf(replies[index - 1])
                                         }
-                                        parentLane={laneOf(thread.commit)}
                                         lane={laneOf(reply)}
-                                        nextLane={
-                                            index < replies.length - 1
-                                                ? laneOf(replies[index + 1])
-                                                : thread.hasMore
-                                                  ? laneOf(reply)
-                                                  : null
+                                        hasNext={
+                                            index < replies.length - 1 ||
+                                            thread.hasMore
                                         }
                                     />
                                 )

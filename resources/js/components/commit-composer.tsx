@@ -101,11 +101,9 @@ function CommitComposerBody({
     errors,
     onKeyDown,
     drop,
-    nextLane,
 }: {
     id: string;
     isInDialog: boolean;
-    nextLane?: string;
     user: User;
     stash: UseStashReturn;
     attachments: ReturnType<typeof useImageAttachments>;
@@ -179,7 +177,6 @@ function CommitComposerBody({
             )}
             <GraphRail
                 lane={laneColor(user.lane)}
-                nextLane={nextLane}
                 variant="staged"
                 isFilled={isFilled}
                 hasTail={!isInDialog}
@@ -557,12 +554,10 @@ export function CommitComposer({
     id = 'body',
     isInDialog = false,
     onCommitted,
-    nextLane,
 }: {
     id?: string;
     isInDialog?: boolean;
     onCommitted?: () => void;
-    nextLane?: string;
 }) {
     const schedule = useCommitSchedule();
     const { isScheduling, scheduledAt, setScheduledAt, setIsScheduling } =
@@ -699,7 +694,6 @@ export function CommitComposer({
                         errors={errors}
                         onKeyDown={onKeyDown}
                         drop={drop}
-                        nextLane={nextLane}
                     />
                 </fieldset>
             )}

@@ -16,7 +16,6 @@ import { useLaneSwipe } from '@/hooks/use-lane-swipe';
 import { useLastVisit } from '@/hooks/use-last-visit';
 import AppLayout from '@/layouts/app-layout';
 import { emojify } from '@/lib/emoji';
-import { laneColor } from '@/lib/utils';
 import type { Commit, CursorPaginated, Log } from '@/types';
 
 export default function Show({
@@ -133,13 +132,7 @@ export default function Show({
 
             {user !== null && (
                 <div ref={setComposer}>
-                    <CommitComposer
-                        key={commitDialogClosedCount}
-                        nextLane={
-                            commits.data[0] &&
-                            laneColor(commits.data[0].user.lane)
-                        }
-                    />
+                    <CommitComposer key={commitDialogClosedCount} />
                 </div>
             )}
 
