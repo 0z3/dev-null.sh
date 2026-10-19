@@ -14,7 +14,7 @@ beforeEach(function (): void {
 it('shows the product metrics of all time to admins', function (): void {
     $admin = User::factory()->create(['username' => 'admin', 'created_at' => '2026-10-16 09:00:00']);
     User::factory()->create(['created_at' => '2026-10-17 09:00:00', 'last_seen_at' => '2026-10-19']);
-    DB::table('active_user_counts')->insert(['date' => '2026-10-17', 'count' => 7]);
+    DB::table('active_user_counts')->insert(['seen_at' => '2026-10-17', 'count' => 7]);
 
     $this->actingAs($admin)
         ->get(route('product-metrics.show'))

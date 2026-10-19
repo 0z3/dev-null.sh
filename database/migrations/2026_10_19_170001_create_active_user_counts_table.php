@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('active_user_counts', function (Blueprint $table): void {
-            $table->date('date')->primary();
+            $table->date('seen_at')->primary();
             $table->unsignedInteger('count');
         });
     }

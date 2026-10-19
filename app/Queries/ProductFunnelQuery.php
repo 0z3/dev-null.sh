@@ -41,7 +41,7 @@ final readonly class ProductFunnelQuery
     public function get(CarbonImmutable $from, CarbonImmutable $to, bool $isAllTime): array
     {
         $today = CarbonImmutable::today();
-        $trackedSince = DB::table('active_user_counts')->min('date');
+        $trackedSince = DB::table('active_user_counts')->min('seen_at');
         $trackedSince = is_string($trackedSince) ? CarbonImmutable::parse($trackedSince) : null;
 
         $launchedOn = User::query()->whereNotIn('github_id', User::BOT_GITHUB_IDS)->min('created_at');

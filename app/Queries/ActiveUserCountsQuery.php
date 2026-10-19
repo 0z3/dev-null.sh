@@ -19,11 +19,11 @@ final readonly class ActiveUserCountsQuery
     public function get(CarbonImmutable $from, CarbonImmutable $to): array
     {
         return DB::table('active_user_counts')
-            ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
-            ->orderBy('date')
-            ->get(['date', 'count'])
+            ->whereBetween('seen_at', [$from->toDateString(), $to->toDateString()])
+            ->oldest('seen_at')
+            ->get(['seen_at', 'count'])
             ->mapInto(Fluent::class)
-            ->map(fn (Fluent $row): array => ['date' => $row->string('date')->value(), 'count' => $row->integer('count')])
+            ->map(fn (Fluent $row): array => ['date' => $row->string('seen_at')->value(), 'count' => $row->integer('count')])
             ->all();
     }
 }

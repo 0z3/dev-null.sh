@@ -22,7 +22,7 @@ beforeEach(function (): void {
     $this->star = fn (User $user, Commit $commit, string $at) => $commit->stars()->attach($user, ['created_at' => $at, 'updated_at' => $at]);
 
     $this->trackSince = fn (string $date): bool => DB::table('active_user_counts')
-        ->insert(['date' => $date, 'count' => 0]);
+        ->insert(['seen_at' => $date, 'count' => 0]);
 });
 
 it('counts the signups of the range, leaving the bots out', function (): void {

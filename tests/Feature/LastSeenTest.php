@@ -80,8 +80,8 @@ it('counts each person once in the active users of the day they are first seen',
     $this->actingAs($this->user)->get(route('log.show', Log::Following))->assertOk();
     $this->actingAs($other)->get(route('log.show', Log::Following))->assertOk();
 
-    expect(DB::table('active_user_counts')->get(['date', 'count'])->map(fn (object $row): array => (array) $row)->all())
-        ->toBe([['date' => '2026-10-19', 'count' => 2]]);
+    expect(DB::table('active_user_counts')->get(['seen_at', 'count'])->map(fn (object $row): array => (array) $row)->all())
+        ->toBe([['seen_at' => '2026-10-19', 'count' => 2]]);
 });
 
 it('does not count someone twice when another request saw them first', function (): void {

@@ -36,6 +36,6 @@ final readonly class UpdateUserLastSeenAt
             return;
         }
 
-        DB::table('active_user_counts')->upsert([['date' => $today, 'count' => 1]], ['date'], ['count' => DB::raw('active_user_counts.count + 1')]);
+        DB::table('active_user_counts')->upsert([['seen_at' => $today, 'count' => 1]], ['seen_at'], ['count' => DB::raw('active_user_counts.count + 1')]);
     }
 }
