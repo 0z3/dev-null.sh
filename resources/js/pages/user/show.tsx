@@ -355,7 +355,7 @@ export default function Show({
                 onPeriodHover={setHighlightedPeriod}
             />
 
-            <ActivityStreaks streaks={streaks} lane={lane} />
+            <ActivityStreaks streaks={streaks} color={lane} />
 
             <AchievementsShelf
                 achievements={achievements}

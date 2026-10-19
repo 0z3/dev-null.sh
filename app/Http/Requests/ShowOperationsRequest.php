@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\ActivityMetric;
 use App\Enums\ActivityScale;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -30,6 +31,7 @@ final class ShowOperationsRequest extends FormRequest
             'from' => ['nullable', Rule::date()->format('Y-m-d')->todayOrBefore()],
             'to' => ['nullable', Rule::date()->format('Y-m-d')->todayOrBefore(), Rule::when($this->filled('from'), 'after_or_equal:from')],
             'scale' => ['nullable', Rule::enum(ActivityScale::class)],
+            'metric' => ['nullable', Rule::enum(ActivityMetric::class)],
         ];
     }
 
@@ -39,6 +41,14 @@ final class ShowOperationsRequest extends FormRequest
     public function activityScale(): ActivityScale
     {
         return $this->enum('scale', ActivityScale::class) ?? ActivityScale::Week;
+    }
+
+    /**
+     * The series the activity graph draws, commits by default.
+     */
+    public function activityMetric(): ActivityMetric
+    {
+        return $this->enum('metric', ActivityMetric::class) ?? ActivityMetric::Commits;
     }
 
     /**

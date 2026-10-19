@@ -22,6 +22,7 @@ import FeatureController from '@/actions/App/Http/Controllers/FeatureController'
 import ModerationController from '@/actions/App/Http/Controllers/ModerationController';
 import { ActivityCells, activitySummary } from '@/components/activity-graph';
 import type { ActivityNoun } from '@/components/activity-graph';
+import { ActivityStreaks } from '@/components/activity-streaks';
 import { EmptyFeed } from '@/components/commit-feed';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -29,7 +30,7 @@ import { useNow } from '@/hooks/use-now';
 import AppLayout from '@/layouts/app-layout';
 import { cn, formatFullDateTime, formatRelativeTime } from '@/lib/utils';
 import type {
-    Activity,
+    ActivityMetric,
     ActivityScale,
     Connectivity,
     FailedJob,
@@ -38,6 +39,8 @@ import type {
     GitHubRateLimit,
     LinkPreviewHealth,
     QueueBacklog,
+    SiteActivity,
+    Streaks,
     Traffic,
     TrafficRange,
     TrafficRow,
@@ -56,6 +59,7 @@ const PAGE_PROPS = [
     'pendingModerationCount',
     'volume',
     'activity',
+    'streaks',
     'features',
     'githubRateLimit',
     'traffic',
@@ -305,29 +309,57 @@ const ACTIVITY_SCALES: { label: string; scale: ActivityScale }[] = [
     { label: '1y', scale: 'year' },
 ];
 
-const COMMITS: ActivityNoun = ['commit', 'commits'];
+const ACTIVITY_METRICS: ActivityMetric[] = ['commits', 'replies', 'signups'];
 
-function ActivityScalePicker({ scale }: { scale: ActivityScale }) {
+const NOUNS: Record<ActivityMetric, ActivityNoun> = {
+    commits: ['commit', 'commits'],
+    replies: ['reply', 'replies'],
+    signups: ['signup', 'signups'],
+};
+
+function ActivityPicker({ activity }: { activity: SiteActivity }) {
     return (
-        <div
-            role="group"
-            aria-label="Window"
-            className="mb-3 flex flex-wrap items-center gap-2 font-mono text-[13px]"
-        >
-            {ACTIVITY_SCALES.map((preset) => (
-                <PresetButton
-                    key={preset.scale}
-                    isActive={preset.scale === scale}
-                    onClick={() =>
-                        router.reload({
-                            data: { scale: preset.scale },
-                            only: ['activity'],
-                        })
-                    }
-                >
-                    {preset.label}
-                </PresetButton>
-            ))}
+        <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[13px]">
+            <div
+                role="group"
+                aria-label="Series"
+                className="flex items-center gap-2"
+            >
+                {ACTIVITY_METRICS.map((metric) => (
+                    <PresetButton
+                        key={metric}
+                        isActive={metric === activity.metric}
+                        onClick={() =>
+                            router.reload({
+                                data: { metric },
+                                only: ['activity', 'streaks'],
+                            })
+                        }
+                    >
+                        {metric}
+                    </PresetButton>
+                ))}
+            </div>
+            <div
+                role="group"
+                aria-label="Window"
+                className="flex items-center gap-2 sm:ml-auto"
+            >
+                {ACTIVITY_SCALES.map((preset) => (
+                    <PresetButton
+                        key={preset.scale}
+                        isActive={preset.scale === activity.scale}
+                        onClick={() =>
+                            router.reload({
+                                data: { scale: preset.scale },
+                                only: ['activity'],
+                            })
+                        }
+                    >
+                        {preset.label}
+                    </PresetButton>
+                ))}
+            </div>
         </div>
     );
 }
@@ -805,6 +837,7 @@ export default function Show({
     pendingModerationCount,
     volume,
     activity,
+    streaks,
     features,
     githubRateLimit,
     traffic,
@@ -816,7 +849,8 @@ export default function Show({
     linkPreviews: LinkPreviewHealth;
     pendingModerationCount: number;
     volume: Volume;
-    activity: Activity;
+    activity: SiteActivity;
+    streaks: Streaks;
     features: Feature[];
     githubRateLimit?: GitHubRateLimit | null;
     traffic?: Traffic | null;
@@ -1115,14 +1149,22 @@ export default function Show({
                 </div>
             </Section>
 
-            <Section title="Activity" meta={activitySummary(activity, COMMITS)}>
-                <ActivityScalePicker scale={activity.scale} />
+            <Section
+                title="Activity"
+                meta={activitySummary(activity, NOUNS[activity.metric])}
+            >
+                <ActivityPicker activity={activity} />
                 <ActivityCells
                     activity={activity}
                     color="var(--muted-foreground)"
-                    noun={COMMITS}
+                    noun={NOUNS[activity.metric]}
                 />
             </Section>
+
+            <ActivityStreaks
+                streaks={streaks}
+                color="var(--muted-foreground)"
+            />
 
             {tracksTraffic && (
                 <Section

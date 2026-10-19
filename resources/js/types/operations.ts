@@ -1,3 +1,9 @@
+import type { Activity } from './activity';
+
+export type ActivityMetric = 'commits' | 'replies' | 'signups';
+
+export type SiteActivity = Activity & { metric: ActivityMetric };
+
 export type QueueBacklog = {
     queue: string;
     size: number;

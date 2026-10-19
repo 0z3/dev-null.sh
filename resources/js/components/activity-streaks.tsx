@@ -2,10 +2,10 @@ import type { Streaks } from '@/types';
 
 export function ActivityStreaks({
     streaks,
-    lane,
+    color,
 }: {
     streaks: Streaks;
-    lane: string;
+    color: string;
 }) {
     if (streaks.longest === 0) {
         return null;
@@ -28,7 +28,7 @@ export function ActivityStreaks({
                         <span
                             aria-hidden
                             className="size-2 rounded-full"
-                            style={{ background: lane }}
+                            style={{ background: color }}
                         />
                         <span>
                             current{' '}
