@@ -512,6 +512,7 @@ it('defers suggested users to follow', function (): void {
                 ->where('suggestedUsers.0.id', $suggested->id)
                 ->where('suggestedUsers.0.followed_by_following_count', 0)
                 ->where('suggestedUsers.0.follows_you', true)
+                ->where('suggestedUsers.0.bio', $suggested->bio)
                 ->missing('suggestedUsers.0.email')));
 
     expect(collect($response->viewData('page')['deferredProps'] ?? [])->flatten())->toContain('suggestedUsers');
