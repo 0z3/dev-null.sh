@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\ActivityScale;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\Response;
@@ -28,7 +29,16 @@ final class ShowOperationsRequest extends FormRequest
         return [
             'from' => ['nullable', Rule::date()->format('Y-m-d')->todayOrBefore()],
             'to' => ['nullable', Rule::date()->format('Y-m-d')->todayOrBefore(), Rule::when($this->filled('from'), 'after_or_equal:from')],
+            'scale' => ['nullable', Rule::enum(ActivityScale::class)],
         ];
+    }
+
+    /**
+     * The activity window, the last seven days by default, like the volume table.
+     */
+    public function activityScale(): ActivityScale
+    {
+        return $this->enum('scale', ActivityScale::class) ?? ActivityScale::Week;
     }
 
     /**

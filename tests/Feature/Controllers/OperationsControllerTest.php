@@ -37,9 +37,22 @@ it('shows the operational health of the app to admins', function (): void {
             ->where('volume.signups', ['day' => 5, 'week' => 5])
             ->where('volume.commits', ['day' => 3, 'week' => 3])
             ->where('volume.replies', ['day' => 1, 'week' => 1])
+            ->where('activity.scale', 'week')
+            ->has('activity.buckets', 8)
+            ->where('activity.buckets.7.count', 3)
             ->where('features', [['name' => 'translations', 'enabled' => true]])
             ->missing('githubRateLimit')
             ->missing('traffic'));
+});
+
+it('draws the activity at the chosen scale', function (): void {
+    $response = $this->actingAs(User::factory()->create(['username' => 'admin']))
+        ->get(route('operations.show', ['scale' => 'day']));
+
+    $response->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('activity.scale', 'day')
+            ->has('activity.buckets', 25));
 });
 
 it('shows the GitHub rate limit when GitHub credentials are configured', function (): void {
@@ -116,7 +129,7 @@ it('shows Fathom traffic for the chosen dates', function (): void {
         && ($request->data()['date_to'] ?? null) === '2026-01-31 23:59:59');
 });
 
-it('rejects traffic dates that are malformed, in the future, or out of order', function (array $query): void {
+it('rejects traffic dates that are malformed, in the future, or out of order, and unknown activity scales', function (array $query): void {
     $this->actingAs(User::factory()->create(['username' => 'admin']))
         ->get(route('operations.show', $query))
         ->assertSessionHasErrors();
@@ -124,4 +137,5 @@ it('rejects traffic dates that are malformed, in the future, or out of order', f
     'malformed' => [['from' => '18/10/2026']],
     'in the future' => [['to' => now()->addDay()->toDateString()]],
     'out of order' => [['from' => '2026-02-01', 'to' => '2026-01-01']],
+    'unknown scale' => [['scale' => 'decade']],
 ]);

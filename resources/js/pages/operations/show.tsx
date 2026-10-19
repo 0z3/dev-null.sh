@@ -20,6 +20,8 @@ import FailedJobController from '@/actions/App/Http/Controllers/FailedJobControl
 import FailedJobRetryController from '@/actions/App/Http/Controllers/FailedJobRetryController';
 import FeatureController from '@/actions/App/Http/Controllers/FeatureController';
 import ModerationController from '@/actions/App/Http/Controllers/ModerationController';
+import { ActivityCells, activitySummary } from '@/components/activity-graph';
+import type { ActivityNoun } from '@/components/activity-graph';
 import { EmptyFeed } from '@/components/commit-feed';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -27,6 +29,8 @@ import { useNow } from '@/hooks/use-now';
 import AppLayout from '@/layouts/app-layout';
 import { cn, formatFullDateTime, formatRelativeTime } from '@/lib/utils';
 import type {
+    Activity,
+    ActivityScale,
     Connectivity,
     FailedJob,
     FailedJobs,
@@ -51,6 +55,7 @@ const PAGE_PROPS = [
     'linkPreviews',
     'pendingModerationCount',
     'volume',
+    'activity',
     'features',
     'githubRateLimit',
     'traffic',
@@ -271,6 +276,62 @@ function countryName(code: string): string {
     }
 }
 
+function PresetButton({
+    isActive,
+    onClick,
+    children,
+}: {
+    isActive: boolean;
+    onClick: () => void;
+    children: ReactNode;
+}) {
+    return (
+        <Button
+            variant={isActive ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-7 px-2 font-mono text-[13px]"
+            aria-pressed={isActive}
+            onClick={onClick}
+        >
+            {children}
+        </Button>
+    );
+}
+
+const ACTIVITY_SCALES: { label: string; scale: ActivityScale }[] = [
+    { label: '24h', scale: 'day' },
+    { label: '7d', scale: 'week' },
+    { label: '30d', scale: 'month' },
+    { label: '1y', scale: 'year' },
+];
+
+const COMMITS: ActivityNoun = ['commit', 'commits'];
+
+function ActivityScalePicker({ scale }: { scale: ActivityScale }) {
+    return (
+        <div
+            role="group"
+            aria-label="Window"
+            className="mb-3 flex flex-wrap items-center gap-2 font-mono text-[13px]"
+        >
+            {ACTIVITY_SCALES.map((preset) => (
+                <PresetButton
+                    key={preset.scale}
+                    isActive={preset.scale === scale}
+                    onClick={() =>
+                        router.reload({
+                            data: { scale: preset.scale },
+                            only: ['activity'],
+                        })
+                    }
+                >
+                    {preset.label}
+                </PresetButton>
+            ))}
+        </div>
+    );
+}
+
 function TrafficRangePicker({ range }: { range: TrafficRange }) {
     const today = utcDate();
 
@@ -284,19 +345,15 @@ function TrafficRangePicker({ range }: { range: TrafficRange }) {
         <div className="mb-3 flex flex-wrap items-center gap-2 font-mono text-[13px]">
             {TRAFFIC_PRESETS.map((preset) => {
                 const from = utcDate(preset.days - 1);
-                const isActive = range.from === from && range.to === today;
 
                 return (
-                    <Button
+                    <PresetButton
                         key={preset.label}
-                        variant={isActive ? 'secondary' : 'ghost'}
-                        size="sm"
-                        className="h-7 px-2 font-mono text-[13px]"
-                        aria-pressed={isActive}
+                        isActive={range.from === from && range.to === today}
                         onClick={() => select({ from, to: today })}
                     >
                         {preset.label}
-                    </Button>
+                    </PresetButton>
                 );
             })}
             <span className="flex items-center gap-1.5 sm:ml-auto">
@@ -747,6 +804,7 @@ export default function Show({
     linkPreviews,
     pendingModerationCount,
     volume,
+    activity,
     features,
     githubRateLimit,
     traffic,
@@ -758,6 +816,7 @@ export default function Show({
     linkPreviews: LinkPreviewHealth;
     pendingModerationCount: number;
     volume: Volume;
+    activity: Activity;
     features: Feature[];
     githubRateLimit?: GitHubRateLimit | null;
     traffic?: Traffic | null;
@@ -1054,6 +1113,15 @@ export default function Show({
                         </tbody>
                     </table>
                 </div>
+            </Section>
+
+            <Section title="Activity" meta={activitySummary(activity, COMMITS)}>
+                <ActivityScalePicker scale={activity.scale} />
+                <ActivityCells
+                    activity={activity}
+                    color="var(--muted-foreground)"
+                    noun={COMMITS}
+                />
             </Section>
 
             {tracksTraffic && (
