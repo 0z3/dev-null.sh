@@ -9,6 +9,7 @@ import type { ActivityNoun } from '@/components/activity-graph';
 import { Breakdown } from '@/components/operations/breakdown';
 import { PresetButton } from '@/components/operations/preset-button';
 import { Section } from '@/components/operations/section';
+import { Stats } from '@/components/operations/stats';
 import AppLayout from '@/layouts/app-layout';
 import OperationsLayout from '@/layouts/operations/layout';
 import { formatCount } from '@/lib/operations';
@@ -17,7 +18,7 @@ import type {
     ActivityMetric,
     ActivityScale,
     SiteActivity,
-    Volume,
+    Today,
 } from '@/types';
 
 const ACTIVITY_SCALES: { label: string; scale: ActivityScale }[] = [
@@ -82,12 +83,19 @@ function ActivityPicker({ activity }: { activity: SiteActivity }) {
     );
 }
 
+const TODAY: { key: keyof Today; label: string }[] = [
+    { key: 'signups', label: 'signups' },
+    { key: 'commits', label: 'commits' },
+    { key: 'replies', label: 'replies' },
+    { key: 'authors', label: 'active authors' },
+];
+
 export default function Show({
-    volume,
+    today,
     activity,
     breakdowns,
 }: {
-    volume: Volume;
+    today: Today;
     activity: SiteActivity;
     breakdowns: ActivityBreakdowns;
 }) {
@@ -96,61 +104,18 @@ export default function Show({
         0,
     );
 
-    const volumeRows = [
-        { label: 'signups', counts: volume.signups },
-        { label: 'commits', counts: volume.commits },
-        { label: 'replies', counts: volume.replies },
-    ];
-
     return (
         <>
             <Head title="Site activity" />
 
-            <Section title="Volume">
-                <div className="rounded-lg border px-4">
-                    <table className="w-full table-fixed text-sm">
-                        <thead>
-                            <tr className="font-mono text-[13px] text-muted-foreground">
-                                <th
-                                    scope="col"
-                                    className="py-2.5 text-left font-normal"
-                                >
-                                    <span className="sr-only">What</span>
-                                </th>
-                                <th
-                                    scope="col"
-                                    className="w-20 py-2.5 text-right font-normal sm:w-24"
-                                >
-                                    24h
-                                </th>
-                                <th
-                                    scope="col"
-                                    className="w-20 py-2.5 text-right font-normal sm:w-24"
-                                >
-                                    7d
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y border-t">
-                            {volumeRows.map((row) => (
-                                <tr key={row.label}>
-                                    <th
-                                        scope="row"
-                                        className="py-2.5 text-left font-mono text-[13px] font-normal text-muted-foreground"
-                                    >
-                                        {row.label}
-                                    </th>
-                                    <td className="py-2.5 text-right font-mono text-[13px] font-medium tabular-nums">
-                                        {formatCount(row.counts.day)}
-                                    </td>
-                                    <td className="py-2.5 text-right font-mono text-[13px] tabular-nums">
-                                        {formatCount(row.counts.week)}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+            <Section title="Today" meta="since 00:00 UTC">
+                <Stats
+                    stats={TODAY.map((stat) => ({
+                        label: stat.label,
+                        value: formatCount(today[stat.key].today),
+                        note: `${formatCount(today[stat.key].yesterday)} yesterday`,
+                    }))}
+                />
             </Section>
 
             <Section

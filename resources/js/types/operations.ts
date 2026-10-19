@@ -45,9 +45,9 @@ export type LinkPreviewHealth = {
     failed: number;
 };
 
-export type Volume = Record<
-    'signups' | 'commits' | 'replies',
-    { day: number; week: number }
+export type Today = Record<
+    'signups' | 'commits' | 'replies' | 'authors',
+    { today: number; yesterday: number }
 >;
 
 export type GitHubRateLimit = {

@@ -13,8 +13,8 @@ final readonly class SiteActivityQuery
     public function __construct(private ActivityBucketsQuery $buckets) {}
 
     /**
-     * The rows of the metric, everyone's, over the window the volume table counts, ending now, so the first cell only
-     * holds the end of the hour or day it starts in and the graph agrees with the table.
+     * The rows of the metric, everyone's, over a window ending now, so the first cell only holds the end of the hour
+     * or day it starts in.
      *
      * @return array{metric: ActivityMetric, scale: ActivityScale, buckets: list<array{date: string, count: int}>}
      */

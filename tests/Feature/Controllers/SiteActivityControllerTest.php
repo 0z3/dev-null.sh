@@ -21,9 +21,10 @@ it('draws the activity of the site to admins', function (): void {
     $response->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('operations/activity')
-            ->where('volume.signups', ['day' => 5, 'week' => 5])
-            ->where('volume.commits', ['day' => 3, 'week' => 3])
-            ->where('volume.replies', ['day' => 1, 'week' => 1])
+            ->where('today.signups', ['today' => 5, 'yesterday' => 0])
+            ->where('today.commits', ['today' => 3, 'yesterday' => 0])
+            ->where('today.replies', ['today' => 1, 'yesterday' => 0])
+            ->where('today.authors', ['today' => 4, 'yesterday' => 0])
             ->where('activity.metric', 'commits')
             ->where('activity.scale', 'week')
             ->has('activity.buckets', 8)

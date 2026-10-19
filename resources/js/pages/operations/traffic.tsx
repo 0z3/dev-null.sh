@@ -2,6 +2,7 @@ import { Deferred, Head, router } from '@inertiajs/react';
 import { Breakdown } from '@/components/operations/breakdown';
 import { PresetButton } from '@/components/operations/preset-button';
 import { Section } from '@/components/operations/section';
+import { Stats } from '@/components/operations/stats';
 import { Status } from '@/components/operations/status';
 import { Skeleton } from '@/components/ui/skeleton';
 import AppLayout from '@/layouts/app-layout';
@@ -110,26 +111,26 @@ function TrafficValue({ traffic }: { traffic: Traffic | null | undefined }) {
 
     return (
         <div className="space-y-3">
-            <dl className="grid grid-cols-2 divide-x divide-y rounded-lg border text-sm sm:grid-cols-4 sm:divide-y-0">
-                {[
-                    ['visitors', formatCount(traffic.totals.visitors)],
-                    ['pageviews', formatCount(traffic.totals.pageviews)],
-                    ['avg time', formatAge(traffic.totals.avg_duration)],
-                    [
-                        'bounce rate',
-                        `${Math.round(traffic.totals.bounce_rate * 100)}%`,
-                    ],
-                ].map(([label, value]) => (
-                    <div key={label} className="px-4 py-2.5">
-                        <dt className="font-mono text-[13px] text-muted-foreground">
-                            {label}
-                        </dt>
-                        <dd className="font-mono text-base font-medium tabular-nums">
-                            {value}
-                        </dd>
-                    </div>
-                ))}
-            </dl>
+            <Stats
+                stats={[
+                    {
+                        label: 'visitors',
+                        value: formatCount(traffic.totals.visitors),
+                    },
+                    {
+                        label: 'pageviews',
+                        value: formatCount(traffic.totals.pageviews),
+                    },
+                    {
+                        label: 'avg time',
+                        value: formatAge(traffic.totals.avg_duration),
+                    },
+                    {
+                        label: 'bounce rate',
+                        value: `${Math.round(traffic.totals.bounce_rate * 100)}%`,
+                    },
+                ]}
+            />
             <div className="grid gap-3 sm:grid-cols-2">
                 {BREAKDOWNS.map((breakdown) => (
                     <Breakdown

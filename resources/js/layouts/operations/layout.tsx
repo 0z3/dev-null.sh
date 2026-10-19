@@ -32,7 +32,7 @@ export const TAB_PROPS: Record<OperationsTab, string[]> = {
         'linkPreviews',
     ],
     'operations/features': ['features'],
-    'operations/activity': ['volume', 'activity', 'breakdowns'],
+    'operations/activity': ['today', 'activity', 'breakdowns'],
     'operations/traffic': ['traffic', 'trafficRange'],
 };
 

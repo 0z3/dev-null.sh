@@ -16,7 +16,7 @@ enum ActivityMetric: string
 
     /**
      * The rows the metric counts by their `created_at`: top-level commits and replies whatever their status since,
-     * deleted ones included, like the volume table, and users for signups.
+     * deleted ones included, like the rest of the operations page, and users for signups.
      */
     public function rows(): Builder
     {

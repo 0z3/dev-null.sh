@@ -39,8 +39,8 @@ enum ActivityScale: string
     }
 
     /**
-     * The start of the window ending now, as the operations volume table counts: the last 24 hours, 7 days, or 30 days.
-     * The year keeps its whole weeks, since its grid needs them.
+     * The start of the window ending now, as the operations page has always counted: the last 24 hours, 7 days, or
+     * 30 days. The year keeps its whole weeks, since its grid needs them.
      */
     public function rollingStart(CarbonImmutable $now): CarbonImmutable
     {
