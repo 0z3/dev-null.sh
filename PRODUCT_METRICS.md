@@ -22,7 +22,7 @@ Status: **implemented** metrics are on the Metrics tab. **Not yet** metrics are 
 | The last day a person was seen (a date, no time) | `users.last_seen_at` | Retention and active users. Written at most once a day, without touching `updated_at`. Included in the person's data export. |
 | The number of people active each day | `active_user_counts` (one row per day, no user ids) | The history of daily active users, since `last_seen_at` only keeps the latest day. Incremented the first time each person is seen in a day, so the count is exact. |
 
-**Seen** means signed in and opening a page or doing something (starring, replying, following) on the web or the installed app, or using the API from the mobile app or the terminal. What a page reads on its own (polling for notifications, partial reloads, prefetches, JSON reads) doesn't count, or a tab left open would keep its owner active forever.
+**Seen** means signed in and opening a page or doing something (starring, replying, following) on the web or the installed app, or using the API from the mobile app or the terminal. Posts automated with the GitHub Action count too: someone who publishes, even automatically, is active. What a page reads on its own (polling for notifications, partial reloads, prefetches, JSON reads) doesn't count, or a tab left open would keep its owner active forever.
 
 Tracking started with the release that added it: visits before that left no trace, and the per-day counts start on that day.
 
