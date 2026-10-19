@@ -45,10 +45,11 @@ export type LinkPreviewHealth = {
     failed: number;
 };
 
-export type Today = Record<
-    'signups' | 'commits' | 'replies' | 'authors',
-    { today: number; yesterday: number }
->;
+export type Counter = 'signups' | 'commits' | 'replies' | 'authors';
+
+export type Today = Record<Counter, { today: number; yesterday: number }>;
+
+export type Overall = Record<Counter, number> & { since: string | null };
 
 export type GitHubRateLimit = {
     remaining: number;

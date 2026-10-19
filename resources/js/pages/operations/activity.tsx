@@ -17,6 +17,8 @@ import type {
     ActivityBreakdowns,
     ActivityMetric,
     ActivityScale,
+    Counter,
+    Overall,
     SiteActivity,
     Today,
 } from '@/types';
@@ -83,7 +85,7 @@ function ActivityPicker({ activity }: { activity: SiteActivity }) {
     );
 }
 
-const TODAY: { key: keyof Today; label: string }[] = [
+const COUNTERS: { key: Counter; label: string }[] = [
     { key: 'signups', label: 'signups' },
     { key: 'commits', label: 'commits' },
     { key: 'replies', label: 'replies' },
@@ -92,10 +94,12 @@ const TODAY: { key: keyof Today; label: string }[] = [
 
 export default function Show({
     today,
+    overall,
     activity,
     breakdowns,
 }: {
     today: Today;
+    overall: Overall;
     activity: SiteActivity;
     breakdowns: ActivityBreakdowns;
 }) {
@@ -110,10 +114,22 @@ export default function Show({
 
             <Section title="Today" meta="since 00:00 UTC">
                 <Stats
-                    stats={TODAY.map((stat) => ({
+                    stats={COUNTERS.map((stat) => ({
                         label: stat.label,
                         value: formatCount(today[stat.key].today),
                         note: `${formatCount(today[stat.key].yesterday)} yesterday`,
+                    }))}
+                />
+            </Section>
+
+            <Section
+                title="Overall"
+                meta={overall.since ? `since ${overall.since}` : 'all time'}
+            >
+                <Stats
+                    stats={COUNTERS.map((stat) => ({
+                        label: stat.label,
+                        value: formatCount(overall[stat.key]),
                     }))}
                 />
             </Section>
