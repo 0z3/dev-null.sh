@@ -1,6 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { CornerDownRight, Trash2 } from 'lucide-react';
-import type { PointerEvent, ReactNode } from 'react';
+import type { MouseEvent, PointerEvent, ReactNode } from 'react';
 import { useRef, useState } from 'react';
 import CommitController from '@/actions/App/Http/Controllers/CommitController';
 import CommitLinkPreviewController from '@/actions/App/Http/Controllers/CommitLinkPreviewController';
@@ -44,6 +44,7 @@ import {
     useIsCommitDeleted,
 } from '@/hooks/use-deleted-resources';
 import { useNow } from '@/hooks/use-now';
+import { clickedCommit } from '@/lib/commit-click';
 import { commitMutationOptions } from '@/lib/commit-mutation-options';
 import {
     cn,
@@ -128,6 +129,20 @@ export function CommitCard({
     const hash = shortHash(commit.id);
     const permalink = CommitController.show({ user: commit.user, commit });
 
+    const openClickedCommit = (event: MouseEvent<HTMLElement>) => {
+        const click = clickedCommit(
+            event,
+            window.getSelection()?.toString() ?? '',
+            window.location.pathname,
+        );
+
+        if (click?.newTab) {
+            window.open(click.url, '_blank', 'noopener');
+        } else if (click) {
+            router.visit(click.url);
+        }
+    };
+
     const cancelDeletion = () => {
         setDeletion('idle');
         deleteButtonRef.current?.focus();
@@ -161,7 +176,10 @@ export function CommitCard({
         <article
             className={cn(
                 'grid scroll-mt-28 transition-[grid-template-rows,opacity,background-color] duration-300 ease-out outline-none hover:bg-accent/50 focus-visible:bg-accent',
-                { 'bg-primary-soft/60': isHighlighted },
+                {
+                    'bg-primary-soft/60': isHighlighted,
+                    'cursor-pointer': !isFocused && !wasDeleted,
+                },
                 deletion === 'deleting'
                     ? 'grid-rows-[0fr] opacity-0 delay-400'
                     : 'grid-rows-[1fr]',
@@ -170,6 +188,8 @@ export function CommitCard({
             data-commit={commit.id}
             data-permalink={wasDeleted ? undefined : permalink.url}
             data-test="commit"
+            onClick={openClickedCommit}
+            onAuxClick={openClickedCommit}
             onPointerMove={
                 onHover &&
                 ((event) =>
