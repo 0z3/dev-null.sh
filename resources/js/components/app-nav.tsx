@@ -386,9 +386,9 @@ export function AppNav({
                         data-test="nav-collapse-button"
                     >
                         {sidebarOpen ? (
-                            <PanelLeftOpen className="size-5 shrink-0" />
-                        ) : (
                             <PanelLeftClose className="size-5 shrink-0" />
+                        ) : (
+                            <PanelLeftOpen className="size-5 shrink-0" />
                         )}
                         <span className={navLabelClassName}>
                             {sidebarOpen ? 'Collapse' : 'Expand'}
