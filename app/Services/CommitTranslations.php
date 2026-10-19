@@ -5,16 +5,32 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\CommitStatus;
+use App\Enums\Feature;
+use App\Exceptions\CommitProcessingFailed;
 use App\Jobs\DetectCommitLanguage;
 use App\Models\Commit;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Locale;
 use ResourceBundle;
+use Throwable;
 
 final readonly class CommitTranslations
 {
     public const int TTL_SECONDS = 604800;
+
+    public function __construct(private Features $features)
+    {
+        //
+    }
+
+    /**
+     * Translations need a provider key and an administrator who has not switched them off.
+     */
+    public function enabled(): bool
+    {
+        return filled(config('ai.providers.opencode.key')) && $this->features->enabled(Feature::Translations);
+    }
 
     public function key(Commit $commit): string
     {
@@ -51,7 +67,7 @@ final readonly class CommitTranslations
     /** @param Collection<int, Commit> $commits */
     public function attach(Collection $commits): void
     {
-        if (blank(config('ai.providers.opencode.key'))) {
+        if (! $this->enabled()) {
             return;
         }
 
@@ -65,7 +81,7 @@ final readonly class CommitTranslations
     /** @return array<string, mixed>|null */
     public function display(Commit $commit, ?string $language = null): ?array
     {
-        if ($commit->trashed() || $commit->status !== CommitStatus::Approved || $commit->body === '' || blank(config('ai.providers.opencode.key'))) {
+        if ($commit->trashed() || $commit->status !== CommitStatus::Approved || $commit->body === '' || ! $this->enabled()) {
             return null;
         }
 
@@ -73,7 +89,11 @@ final readonly class CommitTranslations
         $cached = Cache::memo()->get($this->key($commit));
 
         if ($cached === null) {
-            dispatch(new DetectCommitLanguage($commit->id))->afterCommit();
+            try {
+                dispatch(new DetectCommitLanguage($commit->id))->afterCommit();
+            } catch (Throwable $exception) {
+                report(new CommitProcessingFailed('Language detection dispatch', $commit->id, $exception));
+            }
         }
 
         $language ??= $this->language();

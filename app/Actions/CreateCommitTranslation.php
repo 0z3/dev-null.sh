@@ -6,6 +6,7 @@ namespace App\Actions;
 
 use App\Ai\Agents\CommitTranslator;
 use App\Enums\CommitStatus;
+use App\Exceptions\CommitProcessingFailed;
 use App\Models\Commit;
 use App\Services\CommitTranslations;
 use Illuminate\Support\Facades\Cache;
@@ -25,26 +26,36 @@ final readonly class CreateCommitTranslation
     {
         $key = $this->translations->key($commit);
 
-        Cache::lock($key.':lock', 45)->block(35, function () use ($commit, $language, $key): void {
+        Cache::lock($key.':lock', 90)->block(35, function () use ($commit, $language, $key): void {
             $cached = $this->translations->cached($commit);
 
             if ($cached !== null && ($language === null || isset($cached['translations'][$language]) || in_array($cached['source_language'], [$language, 'und'], true))) {
                 return;
             }
 
+            $reason = 'provider_request';
+
             try {
                 $response = new CommitTranslator($language)->prompt($commit->body);
                 assert($response instanceof StructuredAgentResponse);
 
-                $source = $response['source_language'];
-                $body = $response['body'];
+                $source = $response['source_language'] ?? null;
+                $body = $response['body'] ?? null;
 
-                if (! is_string($source) || ! in_array($source, [...$this->translations->languages(), 'und'], true)
-                    || ! is_string($body) || ($language !== null && $source !== 'und' && (blank($body) || mb_strlen($body) > 16000))) {
+                $reason = match (true) {
+                    $response->structured === [] => 'empty_or_malformed_response',
+                    ! is_string($source), ! is_string($body) => 'invalid_response_shape',
+                    ! in_array($source, [...$this->translations->languages(), 'und'], true) => 'unsupported_source_language',
+                    $language !== null && $source !== 'und' && blank($body) => 'empty_translation',
+                    $language !== null && $source !== 'und' && mb_strlen($body) > 16000 => 'translation_too_long',
+                    default => null,
+                };
+
+                if ($reason !== null) {
                     throw new RuntimeException('Invalid translation response.');
                 }
-            } catch (Throwable) {
-                throw new RuntimeException('Translation failed for commit '.$commit->id.'.');
+            } catch (Throwable $throwable) {
+                throw new CommitProcessingFailed('Translation', $commit->id, $throwable, $reason);
             }
 
             DB::transaction(function () use ($commit, $language, $key, $cached, $source, $body): void {
