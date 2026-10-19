@@ -7,7 +7,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ShowOperationsRequest;
 use App\Models\Commit;
 use App\Queries\ActivityBreakdownsQuery;
-use App\Queries\ActivityStreaksQuery;
 use App\Queries\ConnectivityQuery;
 use App\Queries\FailedJobsQuery;
 use App\Queries\FathomTrafficQuery;
@@ -33,7 +32,6 @@ final readonly class OperationsController
         LinkPreviewHealthQuery $linkPreviews,
         RecentVolumeQuery $volume,
         SiteActivityQuery $activity,
-        ActivityStreaksQuery $streaks,
         ActivityBreakdownsQuery $breakdowns,
         GitHubRateLimitQuery $githubRateLimit,
         FathomTrafficQuery $traffic,
@@ -47,7 +45,6 @@ final readonly class OperationsController
             'pendingModerationCount' => fn (): int => Commit::query()->pending()->count(),
             'volume' => $volume->get(...),
             'activity' => fn (): array => $activity->get($request->activityMetric(), $request->activityScale()),
-            'streaks' => fn (): array => $streaks->get($request->activityMetric()->rows()),
             'breakdowns' => fn (): array => $breakdowns->get($request->activityScale()),
             'features' => $features->all(...),
             ...$githubRateLimit->isConfigured() ? [

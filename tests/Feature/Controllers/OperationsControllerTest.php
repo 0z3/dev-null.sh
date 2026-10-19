@@ -41,7 +41,6 @@ it('shows the operational health of the app to admins', function (): void {
             ->where('activity.scale', 'week')
             ->has('activity.buckets', 8)
             ->where('activity.buckets.7.count', 3)
-            ->where('streaks', ['longest' => 1, 'current' => 1])
             ->where('breakdowns.statuses', [
                 ['name' => 'approved', 'count' => 2],
                 ['name' => 'pending', 'count' => 2],
@@ -63,7 +62,7 @@ it('draws the activity at the chosen scale', function (): void {
             ->has('activity.buckets', 25));
 });
 
-it('draws the chosen series with its streaks', function (): void {
+it('draws the chosen series', function (): void {
     User::factory()->create(['created_at' => now()->subDay()]);
 
     $response = $this->actingAs(User::factory()->create(['username' => 'admin']))
@@ -73,8 +72,7 @@ it('draws the chosen series with its streaks', function (): void {
         ->assertInertia(fn ($page) => $page
             ->where('activity.metric', 'signups')
             ->where('activity.buckets.6.count', 1)
-            ->where('activity.buckets.7.count', 1)
-            ->where('streaks', ['longest' => 2, 'current' => 2]));
+            ->where('activity.buckets.7.count', 1));
 });
 
 it('shows the GitHub rate limit when GitHub credentials are configured', function (): void {

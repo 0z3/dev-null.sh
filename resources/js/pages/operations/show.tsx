@@ -27,7 +27,6 @@ import {
     activityWindows,
 } from '@/components/activity-graph';
 import type { ActivityNoun } from '@/components/activity-graph';
-import { ActivityStreaks } from '@/components/activity-streaks';
 import { EmptyFeed } from '@/components/commit-feed';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -47,7 +46,6 @@ import type {
     LinkPreviewHealth,
     QueueBacklog,
     SiteActivity,
-    Streaks,
     Traffic,
     TrafficRange,
     TrafficRow,
@@ -66,7 +64,6 @@ const PAGE_PROPS = [
     'pendingModerationCount',
     'volume',
     'activity',
-    'streaks',
     'breakdowns',
     'features',
     'githubRateLimit',
@@ -340,7 +337,7 @@ function ActivityPicker({ activity }: { activity: SiteActivity }) {
                         onClick={() =>
                             router.reload({
                                 data: { metric },
-                                only: ['activity', 'streaks'],
+                                only: ['activity'],
                             })
                         }
                     >
@@ -864,7 +861,6 @@ export default function Show({
     pendingModerationCount,
     volume,
     activity,
-    streaks,
     breakdowns,
     features,
     githubRateLimit,
@@ -878,7 +874,6 @@ export default function Show({
     pendingModerationCount: number;
     volume: Volume;
     activity: SiteActivity;
-    streaks: Streaks;
     breakdowns: ActivityBreakdowns;
     features: Feature[];
     githubRateLimit?: GitHubRateLimit | null;
@@ -1194,11 +1189,6 @@ export default function Show({
                     noun={NOUNS[activity.metric]}
                 />
             </Section>
-
-            <ActivityStreaks
-                streaks={streaks}
-                color="var(--muted-foreground)"
-            />
 
             <Section
                 title="Breakdown"
