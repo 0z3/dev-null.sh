@@ -48,6 +48,10 @@ import {
 } from '@/components/ui/tooltip';
 import { UserAvatar } from '@/components/user-avatar';
 import { UserPreview } from '@/components/user-preview';
+import {
+    useCommitNotFound,
+    useIsCommitDeleted,
+} from '@/hooks/use-deleted-resources';
 import { useImageAttachments } from '@/hooks/use-image-attachments';
 import { focusCommit } from '@/hooks/use-keyboard-shortcuts';
 import { useLinkCard } from '@/hooks/use-link-card';
@@ -81,15 +85,19 @@ const maxIndentDepth = 3;
 
 const maxRepliesPerRequest = 50;
 
+type RepliedParent = {
+    id: string;
+    replies_count: number;
+    continuation_id: string | null;
+};
+
 type CreatedReply = {
     committed: CommittedFlash;
+    parent: RepliedParent;
     toast?: FlashToast;
 };
 
 const replyFailedMessage = 'Could not send your reply. Try again.';
-
-const parentUnavailableMessage =
-    'That commit is no longer available to reply to.';
 
 const changedThreadIds = new Set<string>();
 
@@ -124,6 +132,7 @@ type Thread = {
     count: number;
     replies: ThreadCommit[] | null;
     hasMore: boolean;
+    continuationId: string | null;
     remaining: number;
     perPage: number;
     isOpen: boolean;
@@ -135,7 +144,7 @@ type Thread = {
     loadAll: () => void;
     startReply: () => void;
     cancelReply: () => void;
-    onReplied: () => void;
+    onReplied: (parent: RepliedParent) => void;
     onDeleted: () => void;
 };
 
@@ -221,12 +230,16 @@ export function useThread(
     exceptReplyId?: string,
 ): Thread {
     const preview = !isDeleted(commit) ? commit.reply_preview : undefined;
+    const [continuationId, setContinuationId] = useSharedState<string | null>(
+        commitStateKey('continuation_id', commit.id),
+        isDeleted(commit) ? null : (commit.continuation_id ?? null),
+    );
     const except =
         exceptReplyId ??
-        (isDeleted(commit) ? undefined : (commit.continuation_id ?? undefined));
+        (isDeleted(commit) ? undefined : (continuationId ?? undefined));
     const isPreview = preview !== undefined;
     const initial = preview ?? initialReplies;
-    const { repliesPerPage } = usePage().props;
+    const { repliesPerPage, continuation } = usePage().props;
     const [replies, setReplies] = useState<ThreadCommit[] | null>(
         initial?.data ?? null,
     );
@@ -372,6 +385,7 @@ export function useThread(
         count,
         replies,
         hasMore: replies !== null && nextCursor !== null,
+        continuationId,
         remaining: Math.max(count - (replies?.length ?? 0), 0),
         perPage: repliesPerPage,
         isOpen,
@@ -389,12 +403,23 @@ export function useThread(
         loadAll: () => loadUntil(Infinity),
         startReply: () => setIsReplying(true),
         cancelReply: () => setIsReplying(false),
-        onReplied: () => {
+        onReplied: (parent) => {
             changedThreadIds.add(commit.id);
             setIsReplying(false);
-            setIsOpen(true);
-            setCount((current) => current + 1);
-            reload();
+            setCount(parent.replies_count);
+
+            if (parent.continuation_id === continuationId) {
+                setIsOpen(true);
+                reload();
+
+                return;
+            }
+
+            setContinuationId(parent.continuation_id);
+
+            if (continuation !== undefined) {
+                router.reload({ only: ['commit', 'continuation', 'replies'] });
+            }
         },
         onDeleted: () => {
             changedThreadIds.add(commit.id);
@@ -404,8 +429,10 @@ export function useThread(
     };
 }
 
-export function ShowThreadLink({ commit }: { commit: Commit }) {
-    if (!commit.continuation_id) {
+export function ShowThreadLink({ thread }: { thread: Thread }) {
+    const { commit } = thread;
+
+    if (thread.continuationId === null || isDeleted(commit)) {
         return null;
     }
 
@@ -848,6 +875,8 @@ function CommitReply({
     const { auth } = usePage().props;
     const now = useNow();
     const { bodyRef, ...translation } = useCommitTranslation(reply);
+    const wasDeleted = useIsCommitDeleted(reply.id);
+    const commitNotFound = useCommitNotFound();
     const [isConfirming, setIsConfirming] = useState(false);
     const request = useHttp<Record<string, never>, { deleted: DeletedFlash }>(
         {},
@@ -865,9 +894,16 @@ function CommitReply({
     });
 
     const deleteReply = async () => {
+        let isNotFound = false;
+
         try {
             const response = await request.submit(
                 CommitReplyController.destroy({ commit: parent, reply }),
+                {
+                    onHttpException: (response) => {
+                        isNotFound = commitNotFound(reply.id, response);
+                    },
+                },
             );
 
             router.flushAll();
@@ -875,7 +911,11 @@ function CommitReply({
             onDeleted();
             router.flash(() => response);
         } catch {
-            toast.error('Could not delete your reply. Try again.');
+            if (isNotFound) {
+                setIsConfirming(false);
+            } else {
+                toast.error('Could not delete your reply. Try again.');
+            }
 
             return;
         }
@@ -915,7 +955,12 @@ function CommitReply({
                     )}
                 </div>
 
-                <div className="min-w-0 flex-1">
+                <div
+                    inert={wasDeleted}
+                    className={cn('min-w-0 flex-1', {
+                        'opacity-50': wasDeleted,
+                    })}
+                >
                     <div className="flex items-baseline gap-1.5 text-sm">
                         <UserPreview
                             user={reply.user}
@@ -1009,7 +1054,7 @@ function CommitReply({
                             preview={reply.link_preview}
                         />
                     )}
-                    <ShowThreadLink commit={reply} />
+                    <ShowThreadLink thread={thread} />
 
                     {isConfirming ? (
                         <div className="mt-2 flex flex-wrap items-center gap-2 rounded-md bg-destructive/8 px-3 py-1.5 text-sm">
@@ -1066,9 +1111,10 @@ function ReplyComposer({
 }: {
     parent: Commit;
     onCancel: () => void;
-    onReplied: () => void;
+    onReplied: (parent: RepliedParent) => void;
 }) {
     const { user } = useUser();
+    const commitNotFound = useCommitNotFound();
     const {
         body,
         images,
@@ -1158,16 +1204,12 @@ function ReplyComposer({
                     router.flash(() => reply);
                     router.flushAll();
                     updateCommitsCount(1);
-                    onReplied();
+                    onReplied(reply.parent);
                 },
                 onHttpException: (response) => {
-                    if (response.status === 404) {
-                        request.setError('body', parentUnavailableMessage);
-
-                        return;
+                    if (!commitNotFound(parent.id, response)) {
+                        toast.error(replyFailureMessage(response));
                     }
-
-                    toast.error(replyFailureMessage(response));
                 },
                 onNetworkError: () => {
                     toast.error(replyFailedMessage);
