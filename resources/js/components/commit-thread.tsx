@@ -26,6 +26,7 @@ import { CommitPastelButton } from '@/components/commit-pastel-button';
 import { CommitSecondaryActions } from '@/components/commit-secondary-actions';
 import { CommitStarButton } from '@/components/commit-star-button';
 import { CommitStatusBadge } from '@/components/commit-status-badge';
+import { useCommitTranslation } from '@/components/commit-translation';
 import {
     ComposerPreviewBody,
     PreviewToggle,
@@ -78,6 +79,8 @@ import type {
 
 const maxIndentDepth = 3;
 
+const maxRepliesPerRequest = 50;
+
 type CreatedReply = {
     committed: CommittedFlash;
     toast?: FlashToast;
@@ -121,12 +124,15 @@ type Thread = {
     count: number;
     replies: ThreadCommit[] | null;
     hasMore: boolean;
+    remaining: number;
+    perPage: number;
     isOpen: boolean;
     isPreview: boolean;
     isLoading: boolean;
     isReplying: boolean;
     toggle: () => void;
     loadMore: () => void;
+    loadAll: () => void;
     startReply: () => void;
     cancelReply: () => void;
     onReplied: () => void;
@@ -136,8 +142,8 @@ type Thread = {
 async function fetchReplies(
     commit: Pick<ThreadCommit, 'id'>,
     cursor: string | null,
-    newest = false,
-    limit = 50,
+    newest: boolean,
+    limit: number,
     except?: string,
 ): Promise<CursorPaginated<ThreadCommit>> {
     const response = await fetch(
@@ -164,29 +170,48 @@ async function fetchReplies(
     return (await response.json()) as CursorPaginated<ThreadCommit>;
 }
 
-async function fetchRepliesUntil(
+async function fetchRepliesAfter(
     commit: ThreadCommit,
+    replies: ThreadCommit[],
+    cursor: string | null,
     minimum: number,
-    newest = false,
+    newest: boolean,
     except?: string,
-): Promise<CursorPaginated<ThreadCommit>> {
-    const page = await fetchReplies(
-        commit,
-        null,
-        newest,
-        newest ? 1 : 50,
-        except,
-    );
-    let data = page.data;
-    let cursor = page.next_cursor;
+): Promise<Pick<CursorPaginated<ThreadCommit>, 'data' | 'next_cursor'>> {
+    let data = replies;
 
     while (cursor !== null && data.length < minimum) {
-        const next = await fetchReplies(commit, cursor, newest, 50, except);
+        const next = await fetchReplies(
+            commit,
+            cursor,
+            newest,
+            Math.min(maxRepliesPerRequest, minimum - data.length),
+            except,
+        );
         data = [...data, ...next.data];
         cursor = next.next_cursor;
     }
 
-    return { ...page, data, next_cursor: cursor };
+    return { data, next_cursor: cursor };
+}
+
+async function fetchRepliesUntil(
+    commit: ThreadCommit,
+    minimum: number,
+    perPage: number,
+    newest: boolean,
+    except?: string,
+): Promise<Pick<CursorPaginated<ThreadCommit>, 'data' | 'next_cursor'>> {
+    const page = await fetchReplies(commit, null, newest, perPage, except);
+
+    return fetchRepliesAfter(
+        commit,
+        page.data,
+        page.next_cursor,
+        minimum,
+        newest,
+        except,
+    );
 }
 
 export function useThread(
@@ -201,6 +226,7 @@ export function useThread(
         (isDeleted(commit) ? undefined : (commit.continuation_id ?? undefined));
     const isPreview = preview !== undefined;
     const initial = preview ?? initialReplies;
+    const { repliesPerPage } = usePage().props;
     const [replies, setReplies] = useState<ThreadCommit[] | null>(
         initial?.data ?? null,
     );
@@ -224,7 +250,7 @@ export function useThread(
     const [previousPreview, setPreviousPreview] = useState(preview);
     if (preview !== previousPreview) {
         setPreviousPreview(preview);
-        if (preview !== undefined && (replies?.length ?? 0) <= 1) {
+        if (preview !== undefined && (replies?.length ?? 0) <= repliesPerPage) {
             setReplies(preview.data);
             setNextCursor(preview.next_cursor);
         }
@@ -241,17 +267,35 @@ export function useThread(
 
     const reload = (extra = 0) => {
         const minimum =
-            isPreview && (replies?.length ?? 0) <= 1
-                ? 1
-                : replies === null
-                  ? 0
-                  : nextCursor === null
-                    ? Infinity
-                    : replies.length + extra;
+            replies === null || (isPreview && replies.length <= repliesPerPage)
+                ? repliesPerPage
+                : nextCursor === null
+                  ? Infinity
+                  : replies.length + extra;
 
         setIsLoading(true);
 
-        fetchRepliesUntil(commit, minimum, isPreview, except)
+        fetchRepliesUntil(commit, minimum, repliesPerPage, isPreview, except)
+            .then((page) => applyPage(page.data, page.next_cursor))
+            .catch(() => undefined)
+            .finally(() => setIsLoading(false));
+    };
+
+    const loadUntil = (minimum: number) => {
+        if (isLoading || replies === null || nextCursor === null) {
+            return;
+        }
+
+        setIsLoading(true);
+
+        fetchRepliesAfter(
+            commit,
+            replies,
+            nextCursor,
+            minimum,
+            isPreview,
+            except,
+        )
             .then((page) => applyPage(page.data, page.next_cursor))
             .catch(() => undefined)
             .finally(() => setIsLoading(false));
@@ -266,13 +310,7 @@ export function useThread(
 
         let isCurrent = true;
 
-        fetchReplies(
-            { id: commitId },
-            null,
-            isPreview,
-            isPreview ? 1 : 50,
-            except,
-        )
+        fetchReplies({ id: commitId }, null, isPreview, repliesPerPage, except)
             .then((page) => {
                 if (isCurrent) {
                     setReplies(page.data);
@@ -284,7 +322,7 @@ export function useThread(
         return () => {
             isCurrent = false;
         };
-    }, [commitId, shouldLoadReplies, isPreview, except]);
+    }, [commitId, shouldLoadReplies, isPreview, except, repliesPerPage]);
 
     const onExceptChanged = useEffectEvent(() => {
         if (replies !== null && !shouldLoadReplies) {
@@ -334,6 +372,8 @@ export function useThread(
         count,
         replies,
         hasMore: replies !== null && nextCursor !== null,
+        remaining: Math.max(count - (replies?.length ?? 0), 0),
+        perPage: repliesPerPage,
         isOpen,
         isPreview,
         isLoading,
@@ -345,20 +385,8 @@ export function useThread(
 
             setIsOpen(!isOpen);
         },
-        loadMore: () => {
-            if (isLoading || replies === null || nextCursor === null) {
-                return;
-            }
-
-            setIsLoading(true);
-
-            fetchReplies(commit, nextCursor, isPreview, 50, except)
-                .then((page) =>
-                    applyPage([...replies, ...page.data], page.next_cursor),
-                )
-                .catch(() => undefined)
-                .finally(() => setIsLoading(false));
-        },
+        loadMore: () => loadUntil((replies?.length ?? 0) + repliesPerPage),
+        loadAll: () => loadUntil(Infinity),
         startReply: () => setIsReplying(true),
         cancelReply: () => setIsReplying(false),
         onReplied: () => {
@@ -436,7 +464,9 @@ export function ThreadActions({
                                 data-test="reply-button"
                             >
                                 <MessageSquareReply className="size-4" />
-                                Reply
+                                <span className="sr-only sm:not-sr-only">
+                                    Reply
+                                </span>
                                 {hasStash && !thread.isReplying && (
                                     <span
                                         title="You have an unsent reply here"
@@ -666,6 +696,20 @@ function ReplySkeleton() {
     );
 }
 
+function moreRepliesLabel(thread: Thread): string {
+    if (thread.remaining > thread.perPage) {
+        return `Show ${thread.perPage} more`;
+    }
+
+    if (thread.remaining === 1) {
+        return 'Show the last reply';
+    }
+
+    return thread.remaining > 1
+        ? `Show the last ${thread.remaining}`
+        : 'Show more';
+}
+
 function MoreRepliesButton({
     thread,
     isFlattened,
@@ -674,35 +718,53 @@ function MoreRepliesButton({
     isFlattened: boolean;
 }) {
     return (
-        <button
-            type="button"
-            onClick={thread.loadMore}
-            aria-disabled={thread.isLoading}
-            className="-ml-2 flex max-w-full items-center gap-2 rounded-md px-2 py-0.5 text-[13px] text-muted-foreground transition-colors [overflow-anchor:none] hover:bg-accent hover:text-foreground aria-disabled:pointer-events-none sm:gap-2.5"
-            data-test="more-replies-button"
-        >
-            <span
-                aria-hidden
-                className="relative flex size-6 shrink-0 items-center justify-center [--lane:var(--muted-foreground)] sm:size-7"
+        <div className="flex max-w-full items-center gap-0.5 text-[13px] text-muted-foreground">
+            <button
+                type="button"
+                onClick={thread.loadMore}
+                aria-disabled={thread.isLoading}
+                className="-ml-2 flex min-w-0 items-center gap-2 rounded-md px-2 py-0.5 transition-colors [overflow-anchor:none] hover:bg-accent hover:text-foreground aria-disabled:pointer-events-none sm:gap-2.5"
+                data-test="more-replies-button"
             >
-                <RailDot />
-            </span>
-            {thread.isLoading ? (
-                <span role="status">Loading replies…</span>
-            ) : (
-                <span className="truncate">
-                    Show more
-                    {isFlattened && !isDeleted(thread.commit) && (
-                        <>
-                            {' to '}
-                            <span className="font-mono text-xs">
-                                @{thread.commit.user.username}
-                            </span>
-                        </>
-                    )}
+                <span
+                    aria-hidden
+                    className="relative flex size-6 shrink-0 items-center justify-center [--lane:var(--muted-foreground)] sm:size-7"
+                >
+                    <RailDot />
                 </span>
+                {thread.isLoading ? (
+                    <span role="status">Loading replies…</span>
+                ) : (
+                    <span className="truncate tabular-nums">
+                        {moreRepliesLabel(thread)}
+                        {isFlattened && !isDeleted(thread.commit) && (
+                            <>
+                                {' to '}
+                                <span className="font-mono text-xs">
+                                    @{thread.commit.user.username}
+                                </span>
+                            </>
+                        )}
+                    </span>
+                )}
+            </button>
+            {thread.remaining > thread.perPage && (
+                <>
+                    <span aria-hidden className="opacity-50">
+                        ·
+                    </span>
+                    <button
+                        type="button"
+                        onClick={thread.loadAll}
+                        aria-disabled={thread.isLoading}
+                        className="shrink-0 rounded-md px-2 py-0.5 tabular-nums transition-colors [overflow-anchor:none] hover:bg-accent hover:text-foreground aria-disabled:pointer-events-none"
+                        data-test="all-replies-button"
+                    >
+                        Show all {thread.remaining}
+                    </button>
+                </>
             )}
-        </button>
+        </div>
     );
 }
 
@@ -785,6 +847,7 @@ function CommitReply({
 }) {
     const { auth } = usePage().props;
     const now = useNow();
+    const { bodyRef, ...translation } = useCommitTranslation(reply);
     const [isConfirming, setIsConfirming] = useState(false);
     const request = useHttp<Record<string, never>, { deleted: DeletedFlash }>(
         {},
@@ -928,12 +991,15 @@ function CommitReply({
                         </p>
                     )}
 
-                    <FoldedCommitBody
-                        segments={reply.body_segments}
-                        mentions={reply.mentions}
-                        previewSegments={reply.preview_segments}
-                        className="text-[15px]"
-                    />
+                    <div ref={bodyRef} style={translation.bodyStyle}>
+                        <FoldedCommitBody
+                            segments={translation.segments}
+                            mentions={reply.mentions}
+                            previewSegments={translation.previewSegments}
+                            className="text-[15px]"
+                        />
+                    </div>
+                    {translation.notice}
                     <CommitImages commit={reply} />
                     {reply.link_preview && (
                         <LinkPreview
@@ -980,6 +1046,7 @@ function CommitReply({
                                         commit={reply}
                                         className="px-2 py-0.5"
                                     />
+                                    {translation.button}
                                 </>
                             }
                         />
@@ -1220,7 +1287,7 @@ function ReplyComposer({
                     type="submit"
                     size="sm"
                     disabled={processing || !isReplyable}
-                    className="min-w-[4.75rem]"
+                    className="min-w-19"
                     data-test="submit-reply-button"
                 >
                     {processing ? 'Replying…' : 'Reply'}
