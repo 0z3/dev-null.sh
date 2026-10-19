@@ -24,13 +24,6 @@
         }
     }
 }
-@custom-variant nav-narrow {
-    @media (width >= 64rem) {
-        &:where([data-nav='collapsed'], [data-nav='collapsed'] *) {
-            @slot;
-        }
-    }
-}
 @custom-variant reply-hover {
     @media (hover: hover) {
         [data-reply]:hover:not(:has([data-reply]:hover)) & {

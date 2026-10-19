@@ -3,7 +3,6 @@ import {
     Activity,
     Bell,
     Bookmark,
-    ExternalLink,
     GitCommitVertical,
     History,
     Menu,
@@ -54,6 +53,9 @@ import { home, login } from '@/routes';
 import { show } from '@/routes/user';
 import { edit } from '@/routes/user-profile';
 import type { Log, NavItem, Profile } from '@/types';
+
+const navLabelClassName =
+    'sr-only opacity-0 transition-opacity duration-75 nav-wide:not-sr-only nav-wide:opacity-100 nav-wide:delay-200 motion-reduce:transition-none';
 
 /**
  * Guests see the same items, each taking them to sign in.
@@ -210,9 +212,7 @@ function SignInButton({ className }: { className?: string }) {
         <Button asChild className={className}>
             <a href={login().url} data-test="nav-login-button">
                 <GitHubIcon className="size-4" />
-                <span className="sr-only nav-wide:not-sr-only">
-                    Sign in with GitHub
-                </span>
+                <span className={navLabelClassName}>Sign in with GitHub</span>
             </a>
         </Button>
     );
@@ -267,10 +267,8 @@ export function AppNav({
 
     const iconsOnly = !(useMediaQuery('(min-width: 64rem)') && sidebarOpen);
 
-    const toggleNav = (): void => setNavOpen(!sidebarOpen);
-
     return (
-        <header className="sticky top-0 hidden h-svh w-20 shrink-0 scrollbar-none flex-col items-stretch overflow-x-hidden overflow-y-auto px-3.5 py-6 whitespace-nowrap transition-[width,padding] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] motion-reduce:transition-none md:flex nav-wide:w-64 nav-wide:px-4">
+        <header className="ml-auto flex h-svh w-20 scrollbar-none flex-col items-stretch overflow-x-hidden overflow-y-auto px-3.5 py-6 whitespace-nowrap transition-[width,padding] duration-300 ease-[cubic-bezier(0.33,1,0.68,1)] motion-reduce:transition-none nav-wide:w-64 nav-wide:px-4">
             <LogoMenu>
                 <Link
                     href={
@@ -279,16 +277,16 @@ export function AppNav({
                             : LogController.show(auth.log)
                     }
                     viewTransition
-                    className="mb-8 rounded-md px-3 nav-wide:px-3"
+                    className="mb-8 grid grid-rows-[36px_20px] gap-y-1 rounded-md px-3"
                     aria-label={
                         auth.log === null
                             ? '/dev/null, go to the home page'
                             : '/dev/null, go to your log'
                     }
                 >
-                    <AppLogoIcon className="size-7 fill-current nav-wide:hidden" />
+                    <AppLogoIcon className="size-7 self-center fill-current nav-wide:hidden" />
                     <AppLogo className="hidden text-[1.75rem] font-bold tracking-[-0.03em] nav-wide:inline-flex" />
-                    <span className="mt-1 hidden text-sm text-muted-foreground nav-wide:block">
+                    <span className="invisible text-sm leading-5 text-muted-foreground nav-wide:visible">
                         a social network for devs
                     </span>
                 </Link>
@@ -324,7 +322,7 @@ export function AppNav({
                                 item={item}
                                 indicatorClassName="nav-wide:hidden"
                             />
-                            <span className="sr-only nav-wide:not-sr-only">
+                            <span className={navLabelClassName}>
                                 {item.title}
                             </span>
                             {item.hasIndicator && (
@@ -343,75 +341,61 @@ export function AppNav({
                         className="flex items-center gap-3 rounded-lg py-3 pr-3 pl-4 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground xl:hidden nav-wide:pl-3"
                     >
                         <Search className="size-5" />
-                        <span className="sr-only nav-wide:not-sr-only">
-                            Search
-                        </span>
+                        <span className={navLabelClassName}>Search</span>
                         <kbd className="ml-auto hidden rounded border border-b-2 bg-muted px-1.5 font-mono text-xs nav-wide:block">
                             {keys.combo(keys.mod, 'K')}
                         </kbd>
                     </button>
                 </NavTooltip>
-                <NavTooltip label={iconsOnly ? 'Source code' : null}>
-                    <a
-                        href="https://github.com/nunomaduro/dev-null.sh"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="Source code (opens in a new tab)"
-                        title={iconsOnly ? undefined : 'Source code'}
-                        className="flex items-center gap-3 rounded-lg py-3 pr-3 pl-4 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground nav-wide:pl-3"
-                        data-test="source-code-link"
+                <NavTooltip label={iconsOnly ? 'Write a commit (C)' : null}>
+                    <button
+                        type="button"
+                        onClick={onCompose}
+                        aria-label="Write a commit"
+                        aria-keyshortcuts="c"
+                        title={iconsOnly ? undefined : 'Write a commit (C)'}
+                        className="flex items-center gap-3 rounded-lg bg-primary py-3 pr-3 pl-4 text-[15px] font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none nav-wide:pl-3"
+                        data-test="nav-commit-button"
                     >
-                        <GitHubIcon className="size-5" />
-                        <span className="sr-only nav-wide:not-sr-only">
-                            Source code
+                        <SquarePen className="size-5" />
+                        <span className={navLabelClassName}>Commit</span>
+                    </button>
+                </NavTooltip>
+                <NavTooltip
+                    label={
+                        iconsOnly ? (sidebarOpen ? 'Collapse' : 'Expand') : null
+                    }
+                >
+                    <button
+                        type="button"
+                        onClick={() => setNavOpen(!sidebarOpen)}
+                        aria-label={
+                            sidebarOpen
+                                ? 'Collapse navigation'
+                                : 'Expand navigation'
+                        }
+                        aria-expanded={sidebarOpen}
+                        title={
+                            iconsOnly
+                                ? undefined
+                                : sidebarOpen
+                                  ? 'Collapse navigation'
+                                  : 'Expand navigation'
+                        }
+                        className="hidden items-center gap-3 rounded-lg py-3 pr-3 pl-4 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:flex nav-wide:pl-3"
+                        data-test="nav-collapse-button"
+                    >
+                        {sidebarOpen ? (
+                            <PanelLeftOpen className="size-5" />
+                        ) : (
+                            <PanelLeftClose className="size-5" />
+                        )}
+                        <span className={navLabelClassName}>
+                            {sidebarOpen ? 'Collapse' : 'Expand'}
                         </span>
-                        <ExternalLink
-                            aria-hidden
-                            className="ml-auto hidden size-4 nav-wide:block"
-                        />
-                    </a>
+                    </button>
                 </NavTooltip>
             </nav>
-
-            <NavTooltip label={iconsOnly ? 'Write a commit (C)' : null}>
-                <Button
-                    type="button"
-                    onClick={onCompose}
-                    aria-label="Write a commit"
-                    aria-keyshortcuts="c"
-                    title={iconsOnly ? undefined : 'Write a commit (C)'}
-                    className="mt-4 size-[52px] shrink-0 rounded-lg text-[15px] nav-wide:w-auto"
-                    data-test="nav-commit-button"
-                >
-                    <SquarePen className="size-5" />
-                    <span className="sr-only nav-wide:not-sr-only">Commit</span>
-                </Button>
-            </NavTooltip>
-
-            <NavTooltip label={iconsOnly ? 'Expand' : null}>
-                <button
-                    type="button"
-                    onClick={toggleNav}
-                    aria-label={
-                        sidebarOpen
-                            ? 'Collapse navigation'
-                            : 'Expand navigation'
-                    }
-                    aria-expanded={sidebarOpen}
-                    title={iconsOnly ? undefined : 'Collapse'}
-                    className="mt-2 hidden items-center gap-3 rounded-lg py-3 pr-3 pl-4 text-[15px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground lg:flex nav-wide:pl-3"
-                    data-test="nav-collapse-button"
-                >
-                    {sidebarOpen ? (
-                        <PanelLeftClose className="size-5" />
-                    ) : (
-                        <PanelLeftOpen className="size-5" />
-                    )}
-                    <span className="sr-only nav-wide:not-sr-only">
-                        Collapse
-                    </span>
-                </button>
-            </NavTooltip>
 
             {auth.user === null ? (
                 <SignInButton className="mt-auto size-[52px] rounded-lg nav-wide:w-auto" />
