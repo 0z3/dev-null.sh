@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import UserController from '@/actions/App/Http/Controllers/UserController';
 import {
     ActivityCells,
@@ -10,6 +10,7 @@ import { Breakdown } from '@/components/operations/breakdown';
 import { PresetButton } from '@/components/operations/preset-button';
 import { Section } from '@/components/operations/section';
 import { Stats } from '@/components/operations/stats';
+import { UserPreview } from '@/components/user-preview';
 import AppLayout from '@/layouts/app-layout';
 import OperationsLayout from '@/layouts/operations/layout';
 import { formatCount } from '@/lib/numbers';
@@ -163,7 +164,16 @@ export default function Show({
                         empty="unknown"
                         rows={breakdowns.authors}
                         formatName={(name) => `@${name}`}
-                        href={(name) => UserController.show.url(name)}
+                        renderName={(username) => (
+                            <UserPreview user={{ username }}>
+                                <Link
+                                    href={UserController.show(username)}
+                                    className="underline-offset-4 hover:underline"
+                                >
+                                    @{username}
+                                </Link>
+                            </UserPreview>
+                        )}
                     />
                 </div>
             </Section>

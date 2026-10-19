@@ -1,10 +1,11 @@
-import { Link } from '@inertiajs/react';
+import type { ReactNode } from 'react';
 import { formatCount } from '@/lib/numbers';
 import { cn } from '@/lib/utils';
 import type { BreakdownRow } from '@/types';
 
 /**
- * A ranked list with a bar behind each name, sized from the largest row. Empty names print the given word, muted.
+ * A ranked list with a bar behind each name, sized from the largest row. Empty names print the given word, muted;
+ * the others print as formatted, or as rendered when a row needs more than text, a link say.
  */
 export function Breakdown({
     title,
@@ -12,14 +13,14 @@ export function Breakdown({
     empty,
     rows,
     formatName = (name) => name,
-    href,
+    renderName,
 }: {
     title: string;
     unit: string;
     empty: string;
     rows: BreakdownRow[];
     formatName?: (name: string) => string;
-    href?: (name: string) => string;
+    renderName?: (name: string) => ReactNode;
 }) {
     const top = Math.max(0, ...rows.map((row) => row.count));
 
@@ -78,16 +79,9 @@ export function Breakdown({
                                         )}
                                         title={name}
                                     >
-                                        {href && row.name !== '' ? (
-                                            <Link
-                                                href={href(row.name)}
-                                                className="underline-offset-4 hover:underline"
-                                            >
-                                                {name}
-                                            </Link>
-                                        ) : (
-                                            name
-                                        )}
+                                        {renderName && row.name !== ''
+                                            ? renderName(row.name)
+                                            : name}
                                     </span>
                                 </th>
                                 <td className="py-2.5 text-right font-mono text-[13px] font-medium tabular-nums">
