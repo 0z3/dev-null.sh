@@ -1,5 +1,6 @@
 import type { CSSProperties, MouseEvent } from 'react';
 import { useRef, useState } from 'react';
+import { formatCount } from '@/lib/numbers';
 import { cn } from '@/lib/utils';
 import type { Activity, ActivityBucket, ActivityScale } from '@/types';
 
@@ -69,7 +70,7 @@ function formatTime(time: Date): string {
 }
 
 function count(total: number, [singular, plural]: ActivityNoun): string {
-    return `${total} ${total === 1 ? singular : plural}`;
+    return `${formatCount(total)} ${total === 1 ? singular : plural}`;
 }
 
 export function activityTotal(activity: Activity): number {
@@ -183,7 +184,7 @@ export function ActivityGraph({
                     ) : (
                         <>
                             <span className="font-mono text-foreground">
-                                {total}
+                                {formatCount(total)}
                             </span>{' '}
                             {total === 1 ? 'commit' : 'commits'}{' '}
                             {activityWindows[activity.scale]}

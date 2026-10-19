@@ -40,6 +40,13 @@ test('summarizes the activity with its own noun', () => {
         activitySummary({ scale: 'year', buckets: [] }, ['commit', 'commits']),
         '0 commits in the last year',
     );
+    assert.equal(
+        activitySummary(
+            { scale: 'year', buckets: [{ date: '2026-10-15', count: 1500 }] },
+            ['commit', 'commits'],
+        ),
+        '1.5k commits in the last year',
+    );
 });
 
 test('labels the cells with the summary and paints them in the given color', () => {

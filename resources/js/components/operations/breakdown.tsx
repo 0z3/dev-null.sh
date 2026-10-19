@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { formatCount } from '@/lib/operations';
+import { formatCount } from '@/lib/numbers';
 import { cn } from '@/lib/utils';
 import type { BreakdownRow } from '@/types';
 

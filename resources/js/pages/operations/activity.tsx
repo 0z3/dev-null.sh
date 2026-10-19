@@ -12,7 +12,7 @@ import { Section } from '@/components/operations/section';
 import { Stats } from '@/components/operations/stats';
 import AppLayout from '@/layouts/app-layout';
 import OperationsLayout from '@/layouts/operations/layout';
-import { formatCount } from '@/lib/operations';
+import { formatCount } from '@/lib/numbers';
 import type {
     ActivityBreakdowns,
     ActivityMetric,

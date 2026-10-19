@@ -1,7 +1,3 @@
-export function formatCount(count: number): string {
-    return count.toLocaleString('en-US');
-}
-
 export function formatAge(seconds: number): string {
     if (seconds < 60) {
         return `${seconds}s`;

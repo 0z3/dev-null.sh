@@ -13,7 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useNow } from '@/hooks/use-now';
 import AppLayout from '@/layouts/app-layout';
 import OperationsLayout, { TAB_PROPS } from '@/layouts/operations/layout';
-import { formatAge, formatCount } from '@/lib/operations';
+import { formatCount } from '@/lib/numbers';
+import { formatAge } from '@/lib/operations';
 import { cn, formatFullDateTime, formatRelativeTime } from '@/lib/utils';
 import type {
     Connectivity,

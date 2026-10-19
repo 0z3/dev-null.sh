@@ -7,7 +7,8 @@ import { Status } from '@/components/operations/status';
 import { Skeleton } from '@/components/ui/skeleton';
 import AppLayout from '@/layouts/app-layout';
 import OperationsLayout from '@/layouts/operations/layout';
-import { formatAge, formatCount } from '@/lib/operations';
+import { formatCount } from '@/lib/numbers';
+import { formatAge } from '@/lib/operations';
 import type { Traffic, TrafficRange, TrafficRow } from '@/types';
 
 const TRAFFIC_PRESETS = [

@@ -5,7 +5,7 @@ import FeatureController from '@/actions/App/Http/Controllers/FeatureController'
 import { Section } from '@/components/operations/section';
 import AppLayout from '@/layouts/app-layout';
 import OperationsLayout from '@/layouts/operations/layout';
-import { formatCount } from '@/lib/operations';
+import { formatCount } from '@/lib/numbers';
 import { cn } from '@/lib/utils';
 import type { Feature } from '@/types';
 
