@@ -374,7 +374,7 @@ Route::middleware('auth')->group(function (): void {
         ->name('mention-suggestion.index');
 
     Route::get('search/issues', [IssueSuggestionController::class, 'index'])
-        ->middleware('throttle:people')
+        ->middleware('throttle:issue-suggestions')
         ->name('issue-suggestion.index');
 
     // User Profile...
