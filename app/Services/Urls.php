@@ -131,12 +131,14 @@ final readonly class Urls
 
     /**
      * Strips punctuation that ends a sentence rather than the URL, keeping closing brackets that pair with one inside it.
+     * That includes the ellipsis that ends an excerpt and the closing quotes smart punctuation types (” and ’). Keep the
+     * characters in sync with resources/js/components/linkified-text.tsx.
      */
     private function withoutTrailingPunctuation(string $url): string
     {
         do {
             $previous = $url;
-            $url = mb_rtrim($url, '.,;:!?\'"');
+            $url = mb_rtrim($url, '.,;:!?\'"…”’');
 
             foreach (['(' => ')', '[' => ']'] as $open => $close) {
                 if (str_ends_with($url, $close) && mb_substr_count($url, $open) < mb_substr_count($url, $close)) {
