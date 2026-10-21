@@ -542,9 +542,9 @@ The repository defaults to database-backed queues, cache, and sessions. File sto
 
 The knowledge base is split into Markdown sections by heading and stored with vector embeddings in PostgreSQL. An hourly scheduled job refreshes new or changed sections in production, so knowledge-base changes are picked up within an hour of being deployed. Unchanged sections reuse their embeddings.
 
-An [internal semantic search query](README.md#internal-semantic-search) retrieves the nearest knowledge-base sections using Laravel AI SDK query embeddings through OpenAI and PostgreSQL cosine distance, following the same embedding approach as commit search. Tom's read-only tools expose bounded knowledge-base excerpts and public commit search results to the model. There is no standalone public knowledge-base search endpoint.
+An [internal semantic search query](app/Queries/KnowledgeBaseSearchQuery.php) retrieves the nearest knowledge-base sections using Laravel AI SDK query embeddings through OpenAI and PostgreSQL cosine distance, following the same embedding approach as commit search. Tom's read-only tools expose bounded knowledge-base excerpts and public commit search results to the model. There is no standalone public knowledge-base search endpoint.
 
-Stack references: [PHP dependencies](composer.json), [frontend dependencies](package.json), [database configuration](config/database.php), [setup requirements](README.md#getting-started), [queue configuration](config/queue.php), [cache configuration](config/cache.php), [session configuration](config/session.php), [storage configuration](config/filesystems.php), and [existing AI integration](app/Services/OpenAI.php). Laravel Cloud hosting is confirmed by the project team.
+Stack references: [PHP dependencies](composer.json), [frontend dependencies](package.json), [database configuration](config/database.php), [setup requirements](README.md#contributing), [queue configuration](config/queue.php), [cache configuration](config/cache.php), [session configuration](config/session.php), [storage configuration](config/filesystems.php), and [existing AI integration](app/Services/OpenAI.php). Laravel Cloud hosting is confirmed by the project team.
 
 ### October 21, 2026: PHP security patches and precautionary downtime
 
