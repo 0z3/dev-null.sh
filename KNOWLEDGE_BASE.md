@@ -68,7 +68,7 @@ This file documents the platform's features, stack, and stories. Feature entries
 
 ## Repository
 
-- **Repository:** [nunomaduro/dev-null.sh](https://github.com/nunomaduro/dev-null.sh).
+- **Repository:** [dev-null-sh/dev-null.sh](https://github.com/dev-null-sh/dev-null.sh).
 - **Setup and development:** [README](README.md).
 - **Product terminology and behavior:** [Product guide](PRODUCT.md).
 
@@ -197,7 +197,7 @@ Commit and reply text supports inline code in backticks and fenced code blocks w
 
 Typing **@** in a composer opens developer suggestions. Use ↑/↓ to move, Enter or Tab to select, and Esc to dismiss. A bare @ suggests people you follow; typing more searches names and usernames. In replies, matching suggestions put the direct recipient first, then the root commit author, then other visible participants in that thread, followed by ordinary suggestions. Quotes prioritize only the quoted commit author. These priorities also apply to a bare @; typing a term still filters everyone, and yourself, muted developers, and blocked developers are excluded. In an org's messages, suggestions are limited to the org's members. Mentions link to profiles and can notify the mentioned developer after approval. Email addresses and scoped packages such as `@inertiajs/react` are not treated as mentions.
 
-Typing **#123** in a composer looks up that exact issue or pull request in the configured upstream repository (`nunomaduro/dev-null.sh` by default). The matching title appears beneath the number; click it or use Enter or Tab to insert its GitHub URL. A space or punctuation after the number automatically inserts the match, without treating a pause midway through a longer number as completion. Missing numbers and failed lookups leave the text unchanged. Code, URL fragments, and references qualified with another repository are not expanded.
+Typing **#123** in a composer looks up that exact issue or pull request in the configured upstream repository (`dev-null-sh/dev-null.sh` by default). The matching title appears beneath the number; click it or use Enter or Tab to insert its GitHub URL. A space or punctuation after the number automatically inserts the match, without treating a pause midway through a longer number as completion. Missing numbers and failed lookups leave the text unchanged. Code, URL fragments, and references qualified with another repository are not expanded.
 
 The upstream is configured with `GITHUB_REPOSITORY=owner/repo` through `services.github.repository`. Issue suggestions, issue filing, the changelog, repository insights and history, and public repository links share this setting. Repository-specific caches are scoped to it.
 
@@ -415,7 +415,7 @@ Livestream history: terminal posting was reported working on [day one at 6:32:47
 
 ### GitHub Actions integration
 
-Use `nunomaduro/dev-null.sh/.github/actions/commit@production` to publish updates from a GitHub workflow, for example when a release is published. Settings → Terminal includes a workflow example. The action accepts a commit body, an SSH private key supplied through a GitHub Actions secret, an optional `reply-to` reference, optional image paths (up to three), and an optional `url` for another /dev/null instance.
+Use `dev-null-sh/dev-null.sh/.github/actions/commit@production` to publish updates from a GitHub workflow, for example when a release is published. Settings → Terminal includes a workflow example. The action accepts a commit body, an SSH private key supplied through a GitHub Actions secret, an optional `reply-to` reference, optional image paths (up to three), and an optional `url` for another /dev/null instance.
 
 Generate a dedicated CI key, add its public half to GitHub as a signing or authentication key, and store the private half only in the repository's encrypted secrets. The action supports Ed25519 or RSA keys without a passphrase. It reports the created commit's link and whether it is pending review as a workflow annotation; it has no step outputs, and a refused submission fails the job. The usual moderation and submission limits still apply.
 
@@ -450,7 +450,7 @@ Sources: [signed requests](app/Services/SignedRequests.php), [sign-in page](app/
 
 ### Bug reports and feature requests
 
-Start a fresh commit draft with **`/bug `** or **`/feature `** to switch it into an issue draft. Submitting opens a **public GitHub issue** on `nunomaduro/dev-null.sh`, crediting you, rather than posting a normal commit. The issue includes your browser and screen details (browser, OS, viewport, pixel ratio, language, color scheme, and the current page) in a collapsed Environment section. The composer offers command suggestions and a way to cancel back to a commit. Issue drafts are text-only and accept 3–4,000 characters; remove detected secrets before submission.
+Start a fresh commit draft with **`/bug `** or **`/feature `** to switch it into an issue draft. Submitting opens a **public GitHub issue** on `dev-null-sh/dev-null.sh`, crediting you, rather than posting a normal commit. The issue includes your browser and screen details (browser, OS, viewport, pixel ratio, language, color scheme, and the current page) in a collapsed Environment section. The composer offers command suggestions and a way to cancel back to a commit. Issue drafts are text-only and accept 3–4,000 characters; remove detected secrets before submission.
 
 Empty issue drafts show a short Markdown template: steps and expected versus actual behavior for bugs, or the problem and proposal for features. The first top-level `# Heading` becomes the issue title and is removed from the body; the remaining Markdown is preserved. Without a heading, the first line is used as the title and the full draft remains in the body.
 
@@ -500,7 +500,7 @@ Sources: [last seen tracking](app/Http/Middleware/UpdateLastSeenAt.php), [Fathom
 
 ### Tom's repository insights and community statistics
 
-Tom can read public GitHub data for `nunomaduro/dev-null.sh`: up to ten top contributors by GitHub-reported commit count (excluding bots), recent pull requests merged into `production`, open issues labelled **good first issue** or **help wanted**, stars and forks, separate open-issue and open-PR counts, and repository language bytes. These are read-only tools, not arbitrary repository access. A merge does not prove deployment, and a limited list is not an exhaustive count. GitHub insights are cached for fifteen minutes; contributor data can lag by hours and changelog pages have an additional thirty-minute cache. Public reads reuse the application's existing GitHub OAuth credentials, not a user's token.
+Tom can read public GitHub data for `dev-null-sh/dev-null.sh`: up to ten top contributors by GitHub-reported commit count (excluding bots), recent pull requests merged into `production`, open issues labelled **good first issue** or **help wanted**, stars and forks, separate open-issue and open-PR counts, and repository language bytes. These are read-only tools, not arbitrary repository access. A merge does not prove deployment, and a limited list is not an exhaustive count. GitHub insights are cached for fifteen minutes; contributor data can lag by hours and changelog pages have an additional thirty-minute cache. Public reads reuse the application's existing GitHub OAuth credentials, not a user's token.
 
 For feature attribution, Tom can search all indexed dates of merged `production` PR titles and descriptions and non-merge Git commit messages on the default branch. He translates questions into feature keywords and can retry with synonyms or fewer words. All keywords must match, in any order, rather than as one exact phrase. This is AI-guided keyword search, not a semantic GitHub index. Each search returns up to five best matches of each kind, with source links, dates and GitHub-linked author accounts; descriptions are searched but not returned to the model. Results are cached for fifteen minutes, with at most two searches per reply. This is not a code or diff search: matches may be follow-up fixes, missing matches do not establish absence, and PR or commit authorship does not prove sole implementation or list every co-author. Unknown accounts stay unknown; committers and mergers are not credited as implementers. GitHub failures or incomplete searches are reported as unavailable.
 
@@ -626,7 +626,7 @@ Sources:
 
 - [Fernando's post arranging delivery to the crew](https://dev-null.sh/@fernandofreamunde/commits/01a144fe-ed29-7356-af93-03b9724e8af6).
 - [Matthieu's reply thanking him for the pastéis de nata](https://dev-null.sh/@mnapoli/commits/01a1453f-ac59-7077-b99e-98d72547ae8f).
-- [Pastéis mode contribution](https://github.com/nunomaduro/dev-null.sh/pull/286).
+- [Pastéis mode contribution](https://github.com/dev-null-sh/dev-null.sh/pull/286).
 - The project team's account confirms that the emoji and mode are a tribute to Fernando.
 
 ### The pushup break

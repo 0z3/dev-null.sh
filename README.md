@@ -9,7 +9,7 @@ Read the [knowledge base](KNOWLEDGE_BASE.md) for the stack, hosting, repository,
 Requires PHP 8.5+, Composer, Bun, and PostgreSQL 17+ with the [pgvector](https://github.com/pgvector/pgvector) and `pg_trgm` extensions available. [Laravel Herd](https://herd.laravel.com)'s PostgreSQL service ships with both. Create a `devnull` database for the app and a `testing` database for the test suite.
 
 ```bash
-git clone https://github.com/nunomaduro/dev-null.sh.git
+git clone https://github.com/dev-null-sh/dev-null.sh.git
 cd dev-null.sh
 composer setup
 ```
@@ -26,7 +26,7 @@ Outside the local environment, users sign in with GitHub. Create a [GitHub OAuth
 
 ### Issue commands
 
-The `/feature` and `/bug` commands below the composer open an issue on `nunomaduro/dev-null.sh` from the draft, as a GitHub App crediting the reporter. No user grants any extra permission and no user token is stored. Create a [GitHub App](https://github.com/settings/apps/new) with webhooks disabled and only the **Issues: Read and write** repository permission, install it on `nunomaduro/dev-null.sh` alone, generate a private key, then set `GITHUB_APP_ID` and `GITHUB_APP_PRIVATE_KEY` (the PEM contents, with newlines written as `\n`) in `.env`. Each installation token is requested for issues on this repository only and is cached, encrypted, for 50 minutes.
+The `/feature` and `/bug` commands below the composer open an issue on `dev-null-sh/dev-null.sh` from the draft, as a GitHub App crediting the reporter. No user grants any extra permission and no user token is stored. Create a [GitHub App](https://github.com/settings/apps/new) with webhooks disabled and only the **Issues: Read and write** repository permission, install it on `dev-null-sh/dev-null.sh` alone, generate a private key, then set `GITHUB_APP_ID` and `GITHUB_APP_PRIVATE_KEY` (the PEM contents, with newlines written as `\n`) in `.env`. Each installation token is requested for issues on this repository only and is cached, encrypted, for 50 minutes.
 
 ### Embeds
 
