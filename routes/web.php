@@ -77,6 +77,7 @@ use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SiteActivityController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\StarredCommitController;
+use App\Http\Controllers\SuggestionDismissalController;
 use App\Http\Controllers\TermsController;
 use App\Http\Controllers\TrafficController;
 use App\Http\Controllers\UserActivityGraphController;
@@ -458,6 +459,10 @@ Route::middleware('auth')->group(function (): void {
         ->name('user-block.store');
     Route::delete('@{user:username}/block', [UserBlockController::class, 'destroy'])
         ->name('user-block.destroy');
+
+    // Suggestion Dismissal...
+    Route::post('@{user:username}/dismiss', [SuggestionDismissalController::class, 'store'])
+        ->name('suggestion-dismissal.store');
 
     // User Timeout, given by moderators...
     Route::post('@{user:username}/timeout', [UserTimeoutController::class, 'store'])
