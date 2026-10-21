@@ -114,8 +114,6 @@ Route::any('{any?}', fn () => response()->file(public_path('cve/index.html')))
     ->where('any', '.*')
     ->withoutMiddleware('web');
 
-return;
-
 // Commit from the terminal: curl -fsSL https://dev-null.sh/commit | bash -s -- 'Hello world!'
 Route::get('commit', [ScriptController::class, 'show'])->name('cli-script.show');
 
