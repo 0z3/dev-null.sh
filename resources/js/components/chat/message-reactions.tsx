@@ -175,6 +175,7 @@ export function ReactionTray({
     trigger,
     usage,
     reacted,
+    hasReactions,
     isMine,
     onReact,
 }: {
@@ -184,6 +185,7 @@ export function ReactionTray({
     trigger: RefObject<HTMLButtonElement | null>;
     usage: ReactionUsage[];
     reacted: Set<string>;
+    hasReactions: boolean;
     isMine: boolean;
     onReact: (emoji: string) => void;
 }) {
@@ -191,6 +193,9 @@ export function ReactionTray({
     const [isPickerOpen, setIsPickerOpen] = useState(false);
     const isPicking = isOpen && isPickerOpen;
     const pickedEmoji = useRef<string | null>(null);
+    const pendingReaction = useRef<string | null>(null);
+    const [isReservingReaction, setIsReservingReaction] = useState(false);
+    const reservesFirstReaction = isReservingReaction && !hasReactions;
 
     const close = () => {
         onOpenChange(false);
@@ -198,9 +203,29 @@ export function ReactionTray({
     };
 
     const react = (emoji: string) => {
-        onReact(emoji);
+        pendingReaction.current = emoji;
+        setIsReservingReaction(!hasReactions);
         close();
     };
+
+    useEffect(() => {
+        if (isOpen || pendingReaction.current === null) {
+            return;
+        }
+
+        const emoji = pendingReaction.current;
+        pendingReaction.current = null;
+
+        // Adding the chip or changing the presets would move the tray while it folds away.
+        void Promise.allSettled(
+            tray.current
+                ?.getAnimations()
+                .map((animation) => animation.finished) ?? [],
+        ).then(() => {
+            onReact(emoji);
+            setIsReservingReaction(false);
+        });
+    }, [isOpen, onReact]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -250,16 +275,23 @@ export function ReactionTray({
                 }
             }}
             className={cn(
-                'grid w-full transition-[grid-template-rows,margin-bottom] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transition-none pointer-coarse:hidden',
+                'grid w-full duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] motion-reduce:transition-none pointer-coarse:hidden',
                 isOpen ? '-mb-2 grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                // The first chip replaces this 24px row and its 4px gap in the same render.
+                reservesFirstReaction
+                    ? 'pb-7 transition-[grid-template-rows,margin-bottom,padding-bottom]'
+                    : 'transition-[grid-template-rows,margin-bottom]',
             )}
             data-test="reaction-tray"
         >
             {/* The fold clips, so it reaches past the row by the shadow's spread, and the open tray gives that back below. */}
             <div
-                className={cn('-mx-2 flex min-h-0 overflow-hidden px-2', {
-                    'justify-end': isMine,
-                })}
+                className={cn(
+                    '-mx-2 flex min-h-0 items-start overflow-hidden px-2',
+                    {
+                        'justify-end': isMine,
+                    },
+                )}
             >
                 <div
                     role="toolbar"

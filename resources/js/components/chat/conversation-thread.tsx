@@ -915,6 +915,7 @@ function BubbleWithMeta({
                             trigger={reactButton}
                             usage={usage}
                             reacted={reacted}
+                            hasReactions={(reactions?.length ?? 0) > 0}
                             isMine={isMine}
                             onReact={reactToThis}
                         />
