@@ -71,6 +71,7 @@ import {
 } from '@/lib/commit';
 import { commitStateKey } from '@/lib/commit-state';
 import { hasModKey } from '@/lib/keyboard';
+import { exactCountTitle, formatCount, formatExactCount } from '@/lib/numbers';
 import {
     characterCount,
     cn,
@@ -584,7 +585,12 @@ export function ThreadActions({
                     {thread.count > 0 && !thread.isPreview && (
                         <ActionTooltip
                             label={
-                                thread.isOpen ? 'Hide replies' : 'Show replies'
+                                thread.isOpen
+                                    ? 'Hide replies'
+                                    : exactCountTitle(thread.count) ===
+                                        undefined
+                                      ? 'Show replies'
+                                      : `Show ${exactCountTitle(thread.count)} replies`
                             }
                             shortcut={hasKeyboardShortcuts ? 'o' : undefined}
                         >
@@ -608,7 +614,7 @@ export function ThreadActions({
                                 />
                                 {thread.isOpen
                                     ? 'Hide replies'
-                                    : `${thread.count} ${thread.count === 1 ? 'reply' : 'replies'}`}
+                                    : `${formatCount(thread.count)} ${thread.count === 1 ? 'reply' : 'replies'}`}
                             </button>
                         </ActionTooltip>
                     )}
@@ -827,7 +833,7 @@ function moreRepliesLabel(thread: Thread): string {
     }
 
     return thread.remaining > 1
-        ? `Show the last ${thread.remaining}`
+        ? `Show the last ${formatCount(thread.remaining)}`
         : 'Show more';
 }
 
@@ -880,8 +886,9 @@ function MoreRepliesButton({
                         aria-disabled={thread.isLoading}
                         className="shrink-0 rounded-md px-2 py-0.5 tabular-nums transition-colors [overflow-anchor:none] hover:bg-accent hover:text-foreground aria-disabled:pointer-events-none"
                         data-test="all-replies-button"
+                        title={exactCountTitle(thread.remaining)}
                     >
-                        Show all {thread.remaining}
+                        Show all {formatCount(thread.remaining)}
                     </button>
                 </>
             )}
