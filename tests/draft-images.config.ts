@@ -43,6 +43,8 @@ export default defineConfig({
             'tests/Unit/TimeoutRefusals.test.tsx',
             'tests/Unit/VoiceVolume.test.tsx',
             'tests/Unit/VoiceVolumeHover.test.tsx',
+            'tests/Unit/VoiceSpeed.test.tsx',
+            'tests/Unit/VoiceNoteSpeed.test.tsx',
             'tests/Unit/OrgMentionSuggestions.test.tsx',
         ],
     },
