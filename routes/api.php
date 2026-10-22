@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\ConversationDropController;
 use App\Http\Controllers\Api\ConversationMergeController;
 use App\Http\Controllers\Api\ConversationMessageController;
 use App\Http\Controllers\Api\ConversationReadController;
+use App\Http\Controllers\Api\ConversationTypingController;
 use App\Http\Controllers\Api\CurrentUserController;
 use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Api\LogController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Api\OrgArchiveController;
 use App\Http\Controllers\Api\OrgController;
 use App\Http\Controllers\Api\OrgMessageController;
 use App\Http\Controllers\Api\OrgReadController;
+use App\Http\Controllers\Api\OrgTypingController;
 use App\Http\Controllers\Api\RemoteCandidateController;
 use App\Http\Controllers\Api\StarredCommitController;
 use App\Http\Controllers\Api\UserBlockController;
@@ -201,6 +203,15 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
             Route::get('remotes/messages/{message}/link-preview', [MessageLinkPreviewController::class, 'show'])
                 ->whereNumber('message')
                 ->name('api-message-link-preview.show');
+        });
+
+        // Remotes: saying the user is typing, as the web's composer does every few seconds...
+        Route::middleware('throttle:conversations')->group(function (): void {
+            Route::put('remotes/@{partner:username}/typing', [ConversationTypingController::class, 'update'])
+                ->name('api-conversation-typing.update');
+            Route::put('remotes/orgs/{org}/typing', [OrgTypingController::class, 'update'])
+                ->whereUuid('org')
+                ->name('api-org-typing.update');
         });
 
         // Remote Reactions...
