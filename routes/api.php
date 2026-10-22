@@ -218,6 +218,15 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
                 ->name('api-org-typing.update');
         });
 
+        // Remotes: pushing a message, as often as the web's composer may...
+        Route::post('remotes/@{partner:username}/messages', [ConversationMessageController::class, 'store'])
+            ->middleware([PreventPostingInTimeout::class, 'throttle:messages'])
+            ->name('api-conversation-message.store');
+        Route::post('remotes/orgs/{org}/messages', [OrgMessageController::class, 'store'])
+            ->whereUuid('org')
+            ->middleware([PreventPostingInTimeout::class, 'throttle:messages'])
+            ->name('api-org-message.store');
+
         // Remote Reactions...
         Route::middleware('throttle:conversations')->group(function (): void {
             Route::get('remotes/reactions', [MessageReactionController::class, 'index'])->name('api-message-reaction.index');
