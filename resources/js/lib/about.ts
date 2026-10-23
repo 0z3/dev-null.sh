@@ -292,7 +292,7 @@ export const storyContributors: StoryContributor[] = [
     { login: 'prateekbhujel', commits: 4 },
     { login: 'MaximeGoncalves', commits: 3 },
     { login: 'mathiasonea', commits: 3 },
-    { login: 'virtualtear', commits: 2 },
+    { login: '0z3', commits: 2 },
     { login: 'sulimanbenhalim', commits: 2 },
     { login: 'mon4ssi', commits: 2 },
     { login: 'slovenianGooner', commits: 2 },
