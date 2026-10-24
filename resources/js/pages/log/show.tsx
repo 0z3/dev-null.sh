@@ -18,19 +18,21 @@ import AppLayout from '@/layouts/app-layout';
 import { backgroundPollOptions } from '@/lib/background-poll';
 import { emojify } from '@/lib/emoji';
 import { cn } from '@/lib/utils';
-import type { Commit, CursorPaginated, Log } from '@/types';
+import type { Commit, CursorPaginated, Log, User } from '@/types';
 
 export default function Show({
     log,
     commits,
     isRanked,
     newCommitsCount = 0,
+    newCommitAuthors = { users: [], total: 0 },
     suggestions,
 }: {
     log: Log;
     commits: CursorPaginated<Commit>;
     isRanked: boolean;
     newCommitsCount?: number;
+    newCommitAuthors?: { users: User[]; total: number };
     suggestions: Commit[];
 }) {
     const {
@@ -255,7 +257,7 @@ export default function Show({
     const { stop: stopPolling } = usePoll(
         30_000,
         backgroundPollOptions(() => ({
-            only: ['newCommitsCount'],
+            only: ['newCommitsCount', 'newCommitAuthors'],
             data: { since: newestId },
             preserveUrl: true,
         })),
@@ -279,7 +281,7 @@ export default function Show({
 
     const reloadNewestFirst = () =>
         router.reload({
-            only: ['commits', 'newCommitsCount'],
+            only: ['commits', 'newCommitsCount', 'newCommitAuthors'],
             reset: ['commits'],
             data: { since: '' },
             preserveUrl: true,
@@ -340,7 +342,11 @@ export default function Show({
             fetchTimer.current = setTimeout(
                 () =>
                     router.reload({
-                        only: ['commits', 'newCommitsCount'],
+                        only: [
+                            'commits',
+                            'newCommitsCount',
+                            'newCommitAuthors',
+                        ],
                         reset: ['commits'],
                         data: { since: '' },
                         // The new commits come with everything already loaded, so the reader keeps their row.
@@ -422,23 +428,73 @@ export default function Show({
                                 : reloadNewestFirst
                         }
                         disabled={isFetching}
+                        aria-label={
+                            isFetching
+                                ? `Fetching ${announced} new commits`
+                                : newCommitsCount > 0
+                                  ? `Show ${newCommitsCount} new ${newCommitsCount === 1 ? 'commit' : 'commits'}`
+                                  : `${waiting} new ${waiting === 1 ? 'commit' : 'commits'} loaded. Scroll to top`
+                        }
                         className={cn(
                             loaded === 'leaving' &&
                                 newCommitsCount === 0 &&
                                 '-translate-y-2 opacity-0',
-                            'pointer-events-auto mt-3 flex items-center gap-1.5 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground shadow-[0_4px_14px_-4px_rgb(0_0_0/0.35)] transition-colors hover:bg-primary-hover motion-safe:animate-in motion-safe:transition-[opacity,translate,background-color] motion-safe:duration-450 motion-safe:fade-in motion-safe:slide-in-from-top-2',
+                            'pointer-events-auto mt-3 grid min-h-11 max-w-[calc(100vw-2rem)] items-center gap-1.5 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground shadow-[0_4px_14px_-4px_rgb(0_0_0/0.35)] transition-colors hover:bg-primary-hover motion-safe:animate-in motion-safe:transition-[opacity,translate,background-color] motion-safe:duration-450 motion-safe:fade-in motion-safe:slide-in-from-top-2',
                         )}
                     >
-                        {isFetching ? (
-                            <LoaderCircle className="size-4 motion-safe:animate-spin" />
-                        ) : (
-                            <ArrowUp className="size-4" />
-                        )}
-                        {isFetching
-                            ? `Fetching ${announced === 1 ? 'commit' : `${announced} commits`}…`
-                            : newCommitsCount === 0
-                              ? `${waiting === 1 ? '1 new commit' : `${waiting} new commits`} loaded${isAway ? ` · ${window.matchMedia('(pointer: coarse)').matches ? 'Tap' : 'Click'} to scroll up` : ''}`
-                              : `${newCommitsCount} ${newCommitsCount === 1 ? 'new commit' : 'new commits'}`}
+                        <span
+                            aria-hidden
+                            className="invisible col-start-1 row-start-1 flex items-center gap-1.5"
+                        >
+                            <span className="size-4 shrink-0" />
+                            <span>{`${Math.max(newCommitsCount, announced, waiting)} new commits loaded · Click to scroll up`}</span>
+                        </span>
+                        <span className="col-start-1 row-start-1 flex items-center justify-center gap-1.5">
+                            {isFetching ? (
+                                <LoaderCircle className="size-4 motion-safe:animate-spin" />
+                            ) : (
+                                <ArrowUp className="size-4" />
+                            )}
+                            {isFetching ? (
+                                `Fetching ${announced === 1 ? 'commit' : `${announced} commits`}…`
+                            ) : newCommitsCount === 0 ? (
+                                `${waiting === 1 ? '1 new commit' : `${waiting} new commits`} loaded${isAway ? ` · ${window.matchMedia('(pointer: coarse)').matches ? 'Tap' : 'Click'} to scroll up` : ''}`
+                            ) : (
+                                <>
+                                    <span
+                                        aria-hidden
+                                        className="flex shrink-0 items-center -space-x-1"
+                                    >
+                                        {newCommitAuthors.users.map(
+                                            (author) => (
+                                                <UserAvatar
+                                                    key={author.id}
+                                                    user={author}
+                                                    pixels={48}
+                                                    className="size-6 ring-2 ring-primary"
+                                                />
+                                            ),
+                                        )}
+                                        {newCommitAuthors.total > 5 && (
+                                            <span
+                                                title={`${newCommitAuthors.total - 5} more authors`}
+                                                className="relative grid h-6 w-10 shrink-0 place-items-center rounded-sm bg-muted font-mono text-[11px] font-medium text-foreground tabular-nums ring-2 ring-primary"
+                                            >
+                                                +
+                                                {Math.min(
+                                                    newCommitAuthors.total - 5,
+                                                    99,
+                                                )}
+                                                {newCommitAuthors.total - 5 > 99
+                                                    ? '+'
+                                                    : ''}
+                                            </span>
+                                        )}
+                                    </span>
+                                    committed
+                                </>
+                            )}
+                        </span>
                     </button>
                 </div>
             )}

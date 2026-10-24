@@ -207,3 +207,60 @@ test('keeps the loaded control while new commits are above a shallowly scrolled 
 
     assert.equal(vi.getTimerCount(), 0);
 });
+
+for (const total of [1, 5, 6, 104, 10000]) {
+    test(`previews five authors and caps the overflow badge for ${total} authors`, () => {
+        slots = [];
+        cursor = 0;
+        effects = [];
+        layouts = [];
+        const authors = Array.from(
+            { length: Math.min(total, 5) },
+            (_, index) => ({
+                id: `author-${index}`,
+                name: `Author ${index}`,
+                avatar_url: null,
+            }),
+        ) as import('../../resources/js/types').User[];
+        const nodes = elements(
+            Show({
+                log: 'following',
+                commits: { data: [{ id: 'seen' }] } as CursorPaginated<Commit>,
+                isRanked: false,
+                newCommitsCount: total * 2,
+                newCommitAuthors: { users: authors, total },
+                suggestions: [],
+            }),
+        );
+        const button = nodes.find((node) => node.type === 'button')!;
+        assert.equal(
+            button.props['aria-label'],
+            `Show ${total * 2} new commits`,
+        );
+        assert.equal(
+            nodes.filter((node) => node.props.user !== undefined).length,
+            Math.min(total, 5),
+        );
+        const badge = nodes.find(
+            (node) => node.props.title === `${total - 5} more authors`,
+        );
+        assert.equal(Boolean(badge), total > 5);
+        if (badge) {
+            assert.deepEqual(
+                React.Children.toArray(badge.props.children as ReactNode),
+                [
+                    '+',
+                    Math.min(total - 5, 99),
+                    total - 5 > 99 ? '+' : '',
+                ],
+            );
+        }
+        reload.mockClear();
+        (button.props.onClick as () => void)();
+        assert.deepEqual(reload.mock.calls[0][0].only, [
+            'commits',
+            'newCommitsCount',
+            'newCommitAuthors',
+        ]);
+    });
+}
