@@ -33,6 +33,7 @@ This file documents the platform's features, stack, and stories. Feature entries
   - [Pinning a commit](#pinning-a-commit)
   - [Pastéis mode and awards](#pastéis-mode-and-awards)
   - [Notifications](#notifications)
+  - [Emails from /dev/null](#emails-from-devnull)
   - [Remotes: direct messages](#remotes-direct-messages)
   - [Orgs: group chats](#orgs-group-chats)
   - [Muting and blocking](#muting-and-blocking)
@@ -336,6 +337,12 @@ Pin a direct remote or org from its **…** menu to keep it above unpinned conve
 To silence one direct remote or org, open its **…** menu and choose **Mute**, below **Stash**, then **For one hour**, **Until tomorrow**, **For one week**, or **Forever**. **Until tomorrow** ends at the next midnight in your account's timezone, or UTC if no timezone is set. The mute follows your account across devices, does not tell other members, and suppresses browser alerts and sound without hiding messages or changing unread counts. New messages do not cancel a mute. Timed mutes expire automatically; choose **Unmute** in the same menu to end any mute early.
 
 Livestream history: the notification requirements on [day one at 5:28:53](https://www.youtube.com/watch?v=6zCNQa3hNm0&t=19733s) explicitly included removing stale activity after an unfollow or deleted reply. The stated goal was to avoid both spam and notifications that “no longer make sense.”
+
+### Emails from /dev/null
+
+Every now and then, the people running /dev/null email everyone with an account, usually about what shipped recently. Emails go to the address GitHub shared when you signed in. They are not notifications: activity such as replies, stars, or follows never sends an email.
+
+Every email has an **Unsubscribe** link at the bottom, and mail apps such as Gmail also show their own one-click unsubscribe button. Opening the link asks you to confirm, so a mail scanner that opens links can't unsubscribe you by accident. Unsubscribing takes effect right away and does not change anything else about your account. Banned accounts never get these emails, and your data export includes when you unsubscribed.
 
 ### Remotes: direct messages
 
