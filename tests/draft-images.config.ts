@@ -8,6 +8,9 @@ export default defineConfig({
         },
     },
     test: {
+        env: {
+            VITE_APP_NAME: '/dev/null',
+        },
         include: [
             'tests/Unit/CommitPhoto.test.tsx',
             'tests/Unit/CommitSize.test.tsx',
