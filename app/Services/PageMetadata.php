@@ -164,7 +164,7 @@ final readonly class PageMetadata
                         'downloadUrl' => $release['download_url'],
                         'fileSize' => Number::fileSize($release['size'], precision: 1),
                         'image' => url('/images/apps/mac-icon-light.webp'),
-                        'screenshot' => url('/images/apps/mac-light.webp'),
+                        'screenshot' => url('/images/apps/mac.webp'),
                         'offers' => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'USD'],
                     ]],
                 ],

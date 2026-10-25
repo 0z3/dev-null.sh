@@ -143,20 +143,12 @@ export default function Index({
                 <figure className="px-4 pb-8 sm:px-6">
                     <div className="motion-safe:animate-apps-shot-in">
                         <img
-                            src="/images/apps/mac-light.webp"
-                            alt="/dev/null for Mac with an org open: a link card, emoji reactions, a voice note, and who has pulled it, beside the list of remotes."
-                            width={1400}
-                            height={901}
+                            src="/images/apps/mac.webp"
+                            alt="/dev/null for Mac with an org open: a voice note, an image, emoji reactions, and who has pulled it, beside the list of remotes."
+                            width={1858}
+                            height={1288}
                             fetchPriority="high"
-                            className="h-auto w-full dark:hidden"
-                        />
-                        <img
-                            src="/images/apps/mac-dark.webp"
-                            alt="/dev/null for Mac with an org open: a link card, emoji reactions, a voice note, and who has pulled it, beside the list of remotes."
-                            width={1400}
-                            height={901}
-                            loading="lazy"
-                            className="hidden h-auto w-full dark:block"
+                            className="h-auto w-full"
                         />
                     </div>
                 </figure>
