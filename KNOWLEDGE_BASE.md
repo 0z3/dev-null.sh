@@ -490,7 +490,7 @@ Sources: [signed requests](app/Services/SignedRequests.php), [sign-in page](app/
 
 **/dev/null for Mac** is a native Mac app for Remotes: direct remotes and orgs with replies, reactions, images, link cards, voice notes, pull receipts, and notifications. It is free, universal (Apple silicon and Intel), and requires macOS 14 or later. Download it from **/apps**, the home for /dev/null's apps, which shows the version, size, release date, and SHA-256 checksum of the current download (`/mac` redirects there, and **Settings → Devices** links to it).
 
-To install it, open `DevNull.dmg`, drag /dev/null onto Applications, and open it. The file is named `DevNull.app`, because a slash can't go in a file name; everywhere else, the app is called /dev/null. Until the app is notarized by Apple, macOS blocks the first open with "“DevNull” Not Opened": click **Done**, then **System Settings → Privacy & Security → Open Anyway**, and confirm. On macOS 14, Control-click the app in Applications and choose **Open** instead. The /apps page and the DMG window both explain this.
+To install it, open `DevNull.dmg`, drag /dev/null onto Applications, and open it. The file is named `DevNull.app`, because a slash can't go in a file name; everywhere else, the app is called /dev/null. The app is signed and notarized by Apple, so macOS opens it without a warning.
 
 On first launch, choose **Sign in with GitHub**: the app opens `/mobile/authorize` in your browser, you approve its key, and the Mac shows up under **Settings → Devices** like any other device, where you can revoke it. It uses the same signed API as the phone app, with the same limits, and gets new messages by polling while it runs; there are no push notifications after you quit it.
 
