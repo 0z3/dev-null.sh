@@ -374,11 +374,11 @@ Sources: [Remotes setting](resources/js/components/remotes-setting.tsx), [contac
 
 An **Org** is a private group chat within Remotes, not a synchronized GitHub organization. Create one with other eligible developers; a group can contain up to **100 people including you**. Members need Remotes enabled, must follow the person adding them (unless that person is an admin), and must have no block with anyone in the org. A group's optional name can be up to **60 characters**.
 
-The creator starts as a **Maintainer**, and invited people start as **Contributors**. Maintainers can rename the group, add or remove members, and change roles. Contributors can read and send messages. When adding members, a maintainer can share existing history or only new messages. Members can leave or stash the group for themselves. At least one maintainer remains while the group has members: the last maintainer cannot be demoted, and if they leave, the longest-standing remaining member takes over. An org that everyone has left is deleted.
+The creator starts as a **Maintainer**, and invited people start as **Contributors**. Maintainers can rename the group, add or remove members, change roles, and pin up to **25 messages**. Contributors can read and send messages. When adding members, a maintainer can share existing history or only new messages. Members can leave or stash the group for themselves. At least one maintainer remains while the group has members: the last maintainer cannot be demoted, and if they leave, the longest-standing remaining member takes over. An org that everyone has left is deleted.
 
-Group messages support the same text, images, voice notes, replies, link cards, reactions, and typing indicators as direct messages. A member's read position shows only when both you and that member have pull receipts on. Any new message pops the org back for members who stashed it. Membership and history access determine what a person can read.
+Group messages support the same text, images, voice notes, replies, link cards, reactions, and typing indicators as direct messages. A member's read position shows only when both you and that member have pull receipts on. Any new message pops the org back for members who stashed it. Membership and history access determine what a person can read, except pinned messages: on the web, every member sees those in the pinned messages bar at the top of the chat, including people added without the history, and can reply and react to them.
 
-Sources: [group creation](app/Http/Requests/CreateOrgRequest.php), [invitation eligibility](app/Queries/RemoteCandidatesQuery.php), [history sharing](app/Actions/CreateOrgMembers.php), [role changes](app/Http/Requests/UpdateOrgMemberRequest.php), [leaving a group](app/Actions/DeleteOrgMember.php).
+Sources: [group creation](app/Http/Requests/CreateOrgRequest.php), [invitation eligibility](app/Queries/RemoteCandidatesQuery.php), [history sharing](app/Actions/CreateOrgMembers.php), [pinning](app/Http/Requests/UpdateMessagePinRequest.php), [role changes](app/Http/Requests/UpdateOrgMemberRequest.php), [leaving a group](app/Actions/DeleteOrgMember.php).
 
 ### Muting and blocking
 
@@ -480,7 +480,7 @@ A signed request sees what the web shows you, such as your own pending commits. 
 - follow or unfollow, mute or unmute, and block or unblock, and list who you muted and blocked;
 - star or unstar;
 - create polls on commits that are neither replies nor quotes, and vote on polls;
-- change Remotes settings, read and send messages with images, link cards, and voice notes in conversations and orgs, mark them pulled, react to messages and list your reactions, find people, and start orgs;
+- change Remotes settings, read and send messages with images, link cards, and voice notes in conversations and orgs, mark them pulled, react to messages and list your reactions, pin and unpin org messages as a maintainer, find people, and start orgs;
 - rename orgs, add people to them, change their roles, remove them, and leave an org, with the same maintainer rules as the web;
 - stash or reopen conversations and orgs, pin and mute them, merge or drop message requests, and send typing indicators;
 - switch Pastéis mode and give pastéis;
@@ -555,7 +555,7 @@ Posts awaiting automated checks stay pending if those checks fail; a failed chec
 
 Before you first commit, reply, quote, or schedule a commit, the web composer shows the commit rules, and keeps showing them on every attempt until you send with "Got it, commit": no engagement bait, no low-effort posts, no AI-generated posts, no spam or self-promotion, and no harassment, hate, or private information, followed by a link to the terms. Your first submission must come from the web so you can accept these rules; terminal, GitHub Action, and app posting become available afterwards.
 
-During a **timeout**, you can still read and react, but cannot commit, reply, quote, schedule, send remotes, or start, rename, or add people to orgs from any surface; each attempt says how long is left and why. Scheduled commits wait until the timeout ends. Like bans, timeouts belong to the GitHub account: deleting the /dev/null account and signing in again does not end a timeout or erase its history.
+During a **timeout**, you can still read and react, but cannot commit, reply, quote, schedule, send remotes, or start, rename, add people to, or pin messages in orgs from any surface; each attempt says how long is left and why. Scheduled commits wait until the timeout ends. Like bans, timeouts belong to the GitHub account: deleting the /dev/null account and signing in again does not end a timeout or erase its history.
 
 A **ban** sends you to a page explaining why, where you can only sign out or delete your account; the app refuses everything but deleting the account, and the terminal refuses posting. A ban belongs to the GitHub account, so deleting the /dev/null account and signing in again does not lift it. Banning someone cancels their scheduled commits, so lifting the ban later does not publish them all at once.
 
