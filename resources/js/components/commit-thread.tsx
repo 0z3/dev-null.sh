@@ -563,10 +563,12 @@ export function ThreadActions({
     thread,
     actions,
     hasKeyboardShortcuts = false,
+    isReply = false,
 }: {
     thread: Thread;
     actions?: ReactNode;
     hasKeyboardShortcuts?: boolean;
+    isReply?: boolean;
 }) {
     const { auth } = usePage().props;
     const { commit } = thread;
@@ -659,6 +661,7 @@ export function ThreadActions({
                     <CommitSecondaryActions
                         commit={commit}
                         keyShortcut={hasKeyboardShortcuts ? 'y' : undefined}
+                        isReply={isReply}
                     />
                 )}
             </div>
@@ -1289,6 +1292,7 @@ function CommitReply({
                     ) : (
                         <ThreadActions
                             thread={thread}
+                            isReply
                             actions={
                                 <>
                                     <CommitStarButton
