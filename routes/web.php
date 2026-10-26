@@ -81,6 +81,7 @@ use App\Http\Controllers\OrgReadController;
 use App\Http\Controllers\OrgTypingController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\ProductMetricsController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RemoteCandidateController;
 use App\Http\Controllers\ReportedCommitController;
 use App\Http\Controllers\SafetyController;
@@ -122,6 +123,8 @@ use App\Http\Controllers\UserTranslationLanguageController;
 use App\Http\Middleware\PreventPostingInTimeout;
 use App\Http\Middleware\RememberIntendedUrl;
 use App\Http\Middleware\RequireCommitRules;
+use App\Http\Middleware\SerializePushSessions;
+use App\Http\Middleware\SerializePushSubscriptions;
 use App\Http\Middleware\ThrottleCommits;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
@@ -264,7 +267,12 @@ Route::middleware('auth')->group(function (): void {
         ->name('issue.store');
 
     // Session...
+    Route::get('push-subscriptions', [PushSubscriptionController::class, 'index'])->name('push-subscription.index');
+    Route::post('push-subscriptions', [PushSubscriptionController::class, 'store'])->middleware(['throttle:30,1', SerializePushSessions::class, SerializePushSubscriptions::class])->name('push-subscription.store');
+    Route::delete('push-subscriptions', [PushSubscriptionController::class, 'destroy'])->middleware(SerializePushSessions::class)->name('push-subscription.destroy');
+
     Route::post('logout', [SessionController::class, 'destroy'])
+        ->middleware(SerializePushSessions::class)
         ->name('logout');
 
     // Banned, where a banned user is sent from everywhere else...

@@ -1,7 +1,13 @@
+import {
+    remotePushEnabled,
+    remotePushOptedIn,
+    setRemotePush,
+    syncRemotePush,
+} from '@/lib/remote-push';
 import { readStorage, writeStorage } from '@/lib/storage';
 import type { ConversationSummary } from '@/types';
 
-export type RemoteAlertChannel = 'notifications' | 'sound';
+export type RemoteAlertChannel = 'notifications' | 'sound' | 'offsite';
 
 const listeners = new Set<() => void>();
 const preferenceKey = (userId: string, channel: RemoteAlertChannel) =>
@@ -11,17 +17,21 @@ export function remoteAlertsEnabled(
     userId: string,
     channel: RemoteAlertChannel = 'notifications',
 ): boolean {
+    if (channel === 'offsite') return remotePushOptedIn(userId);
+
     return (
         (readStorage(preferenceKey(userId, channel)) ||
             readStorage(`remote-alerts:${userId}`)) !== 'off'
     );
 }
 
+export function remoteNotificationsSupported(): boolean {
+    return 'Notification' in window && window.isSecureContext;
+}
+
 export function remoteNotificationsAllowed(): boolean {
     return (
-        'Notification' in window &&
-        window.isSecureContext &&
-        Notification.permission === 'granted'
+        remoteNotificationsSupported() && Notification.permission === 'granted'
     );
 }
 
@@ -57,14 +67,12 @@ export async function setRemoteAlerts(
     enabled: boolean,
     channel: RemoteAlertChannel = 'notifications',
 ): Promise<boolean> {
-    if (
-        enabled &&
-        channel === 'notifications' &&
-        'Notification' in window &&
-        window.isSecureContext
-    ) {
-        // Tab titles need no permission, even when the browser declines or cannot show banners.
-        await Notification.requestPermission().catch(() => undefined);
+    if (channel === 'offsite') {
+        try {
+            return await setRemotePush(userId, enabled);
+        } finally {
+            listeners.forEach((listener) => listener());
+        }
     }
 
     writeStorage(preferenceKey(userId, channel), enabled ? 'on' : 'off');
@@ -89,6 +97,7 @@ export function createRemoteAlerts(
     reading: () => string[],
     onIncoming: (conversation: ConversationSummary) => void,
 ) {
+    void syncRemotePush(userId).catch(() => undefined);
     let latest: Record<string, number> | null = null;
     let stopped = false;
     let lastSoundAt = 0;
@@ -219,7 +228,8 @@ export function createRemoteAlerts(
                     `${previousSoundAt}\n${consumedState}`,
                 );
                 const showBanner =
-                    remoteAlertsEnabled(userId) && remoteNotificationsAllowed();
+                    remoteAlertsEnabled(userId, 'offsite') &&
+                    remoteNotificationsAllowed();
                 const playSound = remoteAlertsEnabled(userId, 'sound');
 
                 if (incoming === undefined) {
@@ -237,7 +247,7 @@ export function createRemoteAlerts(
                     void sound.play().catch(() => undefined);
                 }
 
-                if (!showBanner) return;
+                if (!showBanner || remotePushEnabled()) return;
 
                 const options: NotificationOptions = {
                     body: 'You have a new message in Remotes.',
