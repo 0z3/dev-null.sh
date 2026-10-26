@@ -114,6 +114,7 @@ use App\Http\Controllers\UserFollowingController;
 use App\Http\Controllers\UserLaneController;
 use App\Http\Controllers\UserLiveController;
 use App\Http\Controllers\UserMuteController;
+use App\Http\Controllers\UserMutualsController;
 use App\Http\Controllers\UserOpenGraphImageController;
 use App\Http\Controllers\UserPasteisModeController;
 use App\Http\Controllers\UserPreviewController;
@@ -193,6 +194,8 @@ Route::middleware(RememberIntendedUrl::class)->group(function (): void {
         ->name('user-following.index');
     Route::get('@{user:handle}/followers', [UserFollowersController::class, 'index'])
         ->name('user-followers.index');
+    Route::get('@{user:handle}/mutuals', [UserMutualsController::class, 'index'])
+        ->name('user-mutuals.index');
     Route::get('@{user:handle}/commits/{commit}', [CommitController::class, 'show'])
         ->scopeBindings()
         ->name('commit.show');
