@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\ConversationMergeController;
 use App\Http\Controllers\Api\ConversationMessageController;
 use App\Http\Controllers\Api\ConversationMuteController;
 use App\Http\Controllers\Api\ConversationPinController;
+use App\Http\Controllers\Api\ConversationPingController;
 use App\Http\Controllers\Api\ConversationReadController;
 use App\Http\Controllers\Api\ConversationTypingController;
 use App\Http\Controllers\Api\CurrentUserController;
@@ -35,6 +36,7 @@ use App\Http\Controllers\Api\OrgMemberController;
 use App\Http\Controllers\Api\OrgMessageController;
 use App\Http\Controllers\Api\OrgMuteController;
 use App\Http\Controllers\Api\OrgPinController;
+use App\Http\Controllers\Api\OrgPingController;
 use App\Http\Controllers\Api\OrgReadController;
 use App\Http\Controllers\Api\OrgTypingController;
 use App\Http\Controllers\Api\RemoteCandidateController;
@@ -251,6 +253,15 @@ Route::prefix('v1')->middleware('throttle:api')->group(function (): void {
             ->whereUuid('org')
             ->middleware([PreventPostingInTimeout::class, 'throttle:messages'])
             ->name('api-org-message.store');
+
+        // Remotes: pinging the partner, as the web's composer does...
+        Route::post('remotes/@{partner:username}/ping', [ConversationPingController::class, 'store'])
+            ->middleware([PreventPostingInTimeout::class, 'throttle:pings'])
+            ->name('api-conversation-ping.store');
+        Route::post('remotes/orgs/{org}/ping', [OrgPingController::class, 'store'])
+            ->whereUuid('org')
+            ->middleware([PreventPostingInTimeout::class, 'throttle:pings'])
+            ->name('api-org-ping.store');
 
         // Remote Reactions...
         Route::middleware('throttle:conversations')->group(function (): void {

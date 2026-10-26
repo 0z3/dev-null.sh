@@ -39,6 +39,7 @@ use App\Http\Controllers\ConversationMergeController;
 use App\Http\Controllers\ConversationMessageController;
 use App\Http\Controllers\ConversationMuteController;
 use App\Http\Controllers\ConversationPinController;
+use App\Http\Controllers\ConversationPingController;
 use App\Http\Controllers\ConversationReadController;
 use App\Http\Controllers\ConversationTypingController;
 use App\Http\Controllers\DeviceController;
@@ -77,6 +78,7 @@ use App\Http\Controllers\OrgMemberController;
 use App\Http\Controllers\OrgMessageController;
 use App\Http\Controllers\OrgMuteController;
 use App\Http\Controllers\OrgPinController;
+use App\Http\Controllers\OrgPingController;
 use App\Http\Controllers\OrgReadController;
 use App\Http\Controllers\OrgTypingController;
 use App\Http\Controllers\PrivacyController;
@@ -398,6 +400,13 @@ Route::middleware('auth')->group(function (): void {
     Route::post('remotes/@{partner:username}/messages', [ConversationMessageController::class, 'store'])
         ->middleware([PreventPostingInTimeout::class, 'throttle:messages'])
         ->name('conversation-message.store');
+    Route::post('remotes/@{partner:username}/ping', [ConversationPingController::class, 'store'])
+        ->middleware([PreventPostingInTimeout::class, 'throttle:pings'])
+        ->name('conversation-ping.store');
+    Route::post('remotes/orgs/{org}/ping', [OrgPingController::class, 'store'])
+        ->whereUuid('org')
+        ->middleware([PreventPostingInTimeout::class, 'throttle:pings'])
+        ->name('org-ping.store');
     Route::post('remotes/orgs/{org}/messages', [OrgMessageController::class, 'store'])
         ->whereUuid('org')
         ->middleware([PreventPostingInTimeout::class, 'throttle:messages'])

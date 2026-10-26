@@ -83,6 +83,26 @@ export async function setRemoteAlerts(
     );
 }
 
+let pingSound: HTMLAudioElement | undefined;
+let pingedAt = 0;
+
+/**
+ * MSN's ping sound. Threads showing the same ping at once, like the page and the dock, play it once.
+ */
+export function playPing(userId: string): void {
+    if (
+        !remoteAlertsEnabled(userId, 'sound') ||
+        Date.now() - pingedAt < 2_000
+    ) {
+        return;
+    }
+
+    pingedAt = Date.now();
+    pingSound ??= new Audio('/sounds/ping.mp3');
+    pingSound.currentTime = 0;
+    void pingSound.play().catch(() => undefined);
+}
+
 export function isRemoteMuted(until: string | null, now = Date.now()): boolean {
     return until !== null && Date.parse(until) > now;
 }
@@ -240,7 +260,12 @@ export function createRemoteAlerts(
                     onIncoming(incoming);
                 }
 
-                if (playSound && now - previousSoundAt >= 10_000) {
+                if (
+                    incoming.last_message?.event === 'ping' &&
+                    incoming.last_message.user_id !== userId
+                ) {
+                    playPing(userId);
+                } else if (playSound && now - previousSoundAt >= 10_000) {
                     lastSoundAt = now;
                     writeStorage(cooldownKey, `${now}\n${consumedState}`);
                     sound.currentTime = 0;

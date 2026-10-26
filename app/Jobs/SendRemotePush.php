@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Enums\OrgEvent;
 use App\Enums\RemoteStatus;
 use App\Models\ConversationParticipant;
 use App\Models\Message;
@@ -36,7 +37,7 @@ final class SendRemotePush implements ShouldQueue
     {
         $message = Message::query()->find($this->messageId);
 
-        if (! $message instanceof Message || $message->event !== null || $message->created_at->lt(Date::now()->subMinutes(5))
+        if (! $message instanceof Message || ! in_array($message->event, [null, OrgEvent::Ping], true) || $message->created_at->lt(Date::now()->subMinutes(5))
             || ! config('services.web_push.public_key') || ! config('services.web_push.private_key')) {
             return;
         }
