@@ -46,11 +46,13 @@ export function focusCommit(commit: HTMLElement): void {
 }
 
 /**
+ * Focus inside a reply acts on that reply, not on the commit card around it.
+ *
  * A deleted commit's actions are inert, which stops pointers and focus but not a scripted click.
  */
 function focusedCommitAction(key: string): HTMLButtonElement | null {
     const action = document.activeElement
-        ?.closest('[data-commit]')
+        ?.closest('[data-reply], [data-commit]')
         ?.querySelector<HTMLButtonElement>(
             `button[aria-keyshortcuts="${CSS.escape(key)}"]`,
         );
